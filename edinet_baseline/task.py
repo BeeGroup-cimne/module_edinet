@@ -5,9 +5,9 @@ from tempfile import NamedTemporaryFile
 from bson import json_util
 import json
 from module_edinet.module_python2 import BeeModule2
-from querybuilder import RawQueryBuilder
 from datetime_functions import date_n_month
-from hive_functions import create_hive_module_input_table, create_measures_temp_table_edinet
+from hive_functions import create_hive_module_input_table, create_hive_table_from_hbase_table
+from hive_functions.query_builder import RawQueryBuilder
 import sys
 
 from module_edinet.edinet_baseline.align_job import MRJob_align
@@ -140,12 +140,15 @@ class BaselineModule(BeeModule2):
         for i in range(len(energyType)):
             for j in range(len(companyId_toJoin)):
                 try:
-                    temp_table = create_measures_temp_table_edinet(self.hive, energyType[i], companyId_toJoin[j], self.task_UUID)
+                    table_name = "{}_{}".format(energyType[i], companyId_toJoin[j])
+                    hive_keys = {"b":"tinyint", "ts":"bigint", "deviceId":"string"}
+                    columns = [("value", "float", "m:v"), ("accumulated", "float", "m:va")]
+                    temp_table = create_hive_table_from_hbase_table(self.hive, table_name, table_name, hive_keys, columns, self.task_UUID)
                     tables.append(temp_table)
                     self.context.add_clean_hive_tables(temp_table)
                     energyTypeList.append(energyType[i])
-                except:
-                    pass
+                except Exception as e:
+                    self.logger.debug("Error creating table: {}".format(e))
         self.logger.debug(len(tables))
 
 
@@ -158,7 +161,7 @@ class BaselineModule(BeeModule2):
 
         #add input table to be deleted after execution
         self.context.add_clean_hive_tables(input_table)
-        qbr = RawQueryBuilder(self.hive, self.logger)
+        qbr = RawQueryBuilder(self.hive)
         sentence = """
             INSERT OVERWRITE TABLE {input_table}
             SELECT deviceId, ts, value, accumulated, energyType FROM
