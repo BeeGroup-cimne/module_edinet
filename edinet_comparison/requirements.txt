@@ -1,14 +1,14 @@
 -i https://217.182.160.171:9002/bgruser/stable/
 backports.functools-lru-cache==1.5
 bee-data-cleaning==0.0.5
-bee-dataframes==0.0.1
+bee-dataframes==0.0.2
 boto3==1.9.8
 botocore==1.12.8
 cachetools==2.1.0
 certifi==2018.8.24
 chardet==3.0.4
 cycler==0.10.0
-datetime-functions==0.0.2
+datetime-functions==0.0.1
 decorator==4.3.0
 docutils==0.14
 enum34==1.1.6
@@ -23,7 +23,7 @@ google-cloud-storage==1.12.0
 google-resumable-media==0.3.1
 googleapis-common-protos==1.5.3
 happybase==1.1.0
-hive-functions==0.0.4
+hive-functions==0.0.9
 idna==2.7
 ipython-genutils==0.2.0
 jmespath==0.9.3
@@ -46,7 +46,6 @@ pyparsing==2.2.1
 python-dateutil==2.7.3
 pytz==2018.5
 PyYAML==3.13
-querybuilder==0.0.1
 requests==2.19.1
 retrying==1.3.3
 rsa==4.0
@@ -62,4 +61,3 @@ traitlets==4.3.2
 urllib3==1.23
 virtualenv==16.0.0
 statsmodels==0.9.0
-list_functions==0.0.2

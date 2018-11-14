@@ -14,6 +14,12 @@ from module_edinet.edinet_baseline.align_job import MRJob_align
 
 
 class BaselineModule(BeeModule2):
+    """
+    Calculate Baselines of edinet buildings
+    1. Read the mongo documents in buildings
+    2. Read the Hbase tables of the requested "energy_type and companyID"
+    3. Launch mapreduce job to calculate the baselines with the used data
+    """
     def __init__(self):
         super(BaselineModule, self).__init__("edinet_baseline")
         #delete hdfs directory found in config path on finish
@@ -119,10 +125,7 @@ class BaselineModule(BeeModule2):
 
         self.logger.info('A mongo query process has loaded {} devices'.format(len(device_key.keys())))
 
-        ######################################################################################################################################################################################
-        """ HIVE QUERY TO PREPARE DATA THAT HAS TO BE LOADED INTO MONGO """
-        ######################################################################################################################################################################################
-        ######################################################################################################################################################################################
+         ######################################################################################################################################################################################
         """ HIVE QUERY TO PREPARE DATA THAT HAS TO BE LOADED INTO MONGO """
         ######################################################################################################################################################################################
         # In the previous implementation, only energyType or companyId were taken into account to join the different tables.

@@ -12,12 +12,18 @@ from module_edinet.edinet_comparison.py.load_to_dbs import LoadResultsToRESTandH
 from module_edinet.edinet_comparison.py.similars_best_criteria import SimilarsBestCriteria
 from module_edinet.edinet_comparison.py.similars_distribution import SimilarsDistribution
 from module_edinet.module_python2 import BeeModule2
-from hive_functions import create_hive_module_input_table, create_measures_temp_table_edinet, create_hive_table_from_hbase_table
-from querybuilder import RawQueryBuilder, QueryBuilder
+from hive_functions import create_hive_module_input_table, create_hive_table_from_hbase_table
+from hive_functions.query_builder import RawQueryBuilder, QueryBuilder
 from datetime_functions import date_n_month, last_day_n_month
 from datetime import datetime
 
 class ComparisonModule(BeeModule2):
+    """
+    Calculates the comparison modules with the buildings of edinet
+    1. Get the modelling_units documents of mongo by type to compare.
+    2. Calculate the comparisons for each group
+    3. Select the best group criteria fore each building
+    """
     def __init__(self):
         super(ComparisonModule, self).__init__("edinet_comparison")
         #delete hdfs directory found in config path on finish
@@ -371,8 +377,10 @@ class ComparisonModule(BeeModule2):
         for i in range(len(energyType)):
             for j in range(len(companyId_toJoin)):
                 try:
-                    temp_table = create_measures_temp_table_edinet(self.hive, energyType[i], companyId_toJoin[j],
-                                                                   self.task_UUID)
+                    table_name = "{}_{}".format(energyType[i], companyId_toJoin[j])
+                    hive_keys = {"b": "tinyint", "ts": "bigint", "deviceId": "string"}
+                    columns = [("value", "float", "m:v"), ("accumulated", "float", "m:va")]
+                    temp_table = create_hive_table_from_hbase_table(self.hive, table_name, table_name, hive_keys, columns, self.task_UUID)
                     tables.append(temp_table)
                     self.context.add_clean_hive_tables(temp_table)
                     energyTypeList.append(energyType[i])
@@ -508,16 +516,19 @@ class ComparisonModule(BeeModule2):
 
         # Create the static HIVE table to become available all the summary results for each possible similar users criteria
         if similar_users_group_calculation:
-            #TODO: ADD func to package
             create_hive_table_from_hbase_table(
                 self.hive,
-                table=self.config['settings']['similar_users_groups']['hbase_table_dist'],
-                hive_key='month:int, companyId:bigint, type:string, criteria:string, groupCriteria:string',
-                hive_columns='average string, results string, penalty float, numberCustomers int,\
-                                 coefficientVariation float, coefficientDispersion float',
-                hbase_key=':key',
-                hbase_columns='r:average, r:results, r:penalty, r:numberCustomers, r:coefficientVariation,\
-                                  r:coefficientDispersion')
+                table_hive=self.config['settings']['similar_users_groups']['hbase_table_dist'],
+                table_hbase=self.config['settings']['similar_users_groups']['hbase_table_dist'],
+                hive_key={'month':'int', 'companyId':'bigint', 'type':'string', 'criteria':'string', 'groupCriteria':'string'},
+                columns=[('average', 'string', 'r:average'),
+                         ('results', 'string', 'r:results'),
+                         ('penalty', 'float', 'r:penalty'),
+                         ('numberCustomers', 'int', 'r:numberCustomers'),
+                         ('coefficientVariation', 'float', 'r:coefficientVariation'),
+                         ('coefficientDispersion', 'float', 'r:coefficientDispersion')
+                        ]
+            )
         self.context.add_clean_hive_tables(self.config['settings']['similar_users_groups']['hbase_table_dist'])
 
         self.logger.info("created hive_table")
