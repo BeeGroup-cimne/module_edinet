@@ -13,6 +13,11 @@ from module_edinet.edinet_mh_hadoop_tertiary_etl.hadoop_job import Hadoop_ETL
 class ETL_mh_hadoop_tertiary(BeeModule2):
     """
     ETL to move tertiary consumption from mongo to hadoop
+    1. Get the measures from Mongo
+    2. Create an HDFS with the measures
+    3. Upload the measures to Hbase
+    4. Backup the measures uploaded
+    5. Delete the uploaded measures from mongo
     """
     def __init__(self):
         super(ETL_mh_hadoop_tertiary, self).__init__("ETL_mh_hadoop_tertiary")
