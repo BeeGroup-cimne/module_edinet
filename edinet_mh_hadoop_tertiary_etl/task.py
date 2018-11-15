@@ -187,7 +187,7 @@ class ETL_mh_hadoop_tertiary(BeeModule2):
         if delete_process:
             try:
                 self.logger.info('Making the backup of the REST measures that has been loaded to Hbase')
-                self.bson_backup(self.mongo, measures_collection, companyId)
+                self.bson_backup(self.mongo, measures_collection, query)
                 self.logger.info('The backup finished successfully')
             except Exception as e:
                 raise Exception('There was an error with the backup process of the REST measures: {}'.format(e))

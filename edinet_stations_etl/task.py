@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
 
     """
-from module_edinet.edinet_baseline.task import ETL_stations
+from module_edinet.edinet_stations_etl.task import ETL_stations
 from datetime import datetime
 params = {}
 t = ETL_stations()
