@@ -5,7 +5,7 @@
 task_exec_file=task.py
 
 # module name
-task_name=edinet_mh_hadoop_tertiary_etl
+task_name=edinet_meteo_input_etl
 
 # celery queue to add this task
 queue=etl

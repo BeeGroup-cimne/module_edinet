@@ -1,3 +1,6 @@
+import calendar
+
+import pytz
 from mrjob.job import MRJob
 from mrjob.protocol import PickleValueProtocol
 
@@ -36,12 +39,8 @@ class Hadoop_ETL(MRJob):
                 self.config['mongodb']['username'],
                 self.config['mongodb']['password']
                 )
-        
-        #if not 'amon_measures_measurements_with_errors' in self.mongo[self.config['app']['mongodb']['db']].collection_names():
-        #        self.mongo[self.config['app']['mongodb']['db']].create_collection('amon_measures_measurements_with_errors')
-        #        self.mongo[self.config['app']['mongodb']['db']]['amon_measures_measurements_with_errors'].create_index([("companyId", ASCENDING),("timestamp", DESCENDING)])
-        
-        
+
+
     def add_reading_information(self, doc):
         r = self.readings_cache.get(doc['reading'])
         if not r:
@@ -67,10 +66,8 @@ class Hadoop_ETL(MRJob):
 
 
     def datetime_to_timestamp(self, doc, field):
-
-        doc[field] = int(doc[field].replace(tzinfo=pytz.UTC).strftime('%s'))
         # Input data is always in UTC and the timestamp stored in HBase must be in UTC timezone.
-
+        doc[field] = calendar.timegm(doc[field].utctimetuple())
         return doc
 
     def convert_units_to_kilo(self, unit, value):
@@ -90,10 +87,6 @@ class Hadoop_ETL(MRJob):
             pass
         return value
 
-    def add_ts_bucket(self, doc, field_b, field_ts):
-        doc[field_b] = (doc[field_ts] / 100) % 100
-        return doc
-
     def is_float(self, x):
         try:
             x = float(x)
@@ -109,7 +102,7 @@ class Hadoop_ETL(MRJob):
             "timestamp": "2013-11-30 18:00:00",
             "reading": "52a9845fdfeb570207c02319",
             "deviceId": "912062bb-21ec-5787-805d-cf3858c67405",
-            "values": {"p1":12,"p2":145,"p3":543,"p4":56,"p6":2},
+            "value": 120,
             "companyId": "1234509876"
             }
         """
@@ -132,28 +125,21 @@ class Hadoop_ETL(MRJob):
             # customer not found
             #raise Exception("The deviceId %s dont correspond to any contractId" % doc['deviceId'])
             return
-        
+        print(doc)
         doc = self.datetime_to_timestamp(doc,'timestamp')
-        doc = self.add_ts_bucket(doc, 'bucket', 'timestamp')
-        
         # ROW KEY DEFINITION
         row_key = self.build_row_key(doc)
         
         # Key - Value lists from the values dictionary
-        doc_key = ['m:'+str(item[0]) if doc['reading']['period'] in ['INSTANT','PULSE'] else 'm:'+str(item[0])+'a' for item in doc['values'].iteritems() if self.is_float(str(item[1]))]
-        doc_val = [self.convert_units_to_kilo(doc['reading']['unit'], item) for item in doc['values'].itervalues() if self.is_float(str(item))]
-        
-        # Extend the Key - Value lists with the aggregated consumption of all the periods in case of INSTANT or PULSE period
-        if doc['reading']['period'] in ['INSTANT','PULSE']:
-            doc_key.extend(['m:v','m:calc']) # column value, column calculated
-            doc_val.extend([np.sum(doc_val),'0']) # Sum all instant period values, Consider a 0 because the measure is not treated with the cumulative to instant ETL
-        
+        doc_key = ['m:v' if doc['reading']['period']=='INSTANT' else 'm:a']
+        doc_val = [self.convert_units_to_kilo(doc['reading']['unit'], doc['value'])]
+
         # ROW VALUE DEFINITION
         row = {}
-        for i in xrange(len(doc_key)):
+        for i in range(len(doc_key)):
             row[doc_key[i]] = str(doc_val[i])
-        
-        table_name = doc['reading']['type']+'_'+str(doc['companyId'])
+
+            table_name = "_".join([self.config['hbase_table']['name'], doc['reading']['type'], str(doc['companyId'])])
         
         try:
             if not table_name in self.tables_list:

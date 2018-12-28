@@ -66,12 +66,15 @@ class BeeModule2(object):
 
     def _replace_dict(self,dict_replace, **kwargs):
         for k,v in dict_replace.items():
-            if isinstance(v, dict):
-                self._replace_dict(v, **kwargs)
-            elif isinstance(v, list):
-                dict_replace[k] = [x.format(**kwargs) if isinstance(x,str) else x for x in v]
-            elif isinstance(v, str) or isinstance(v, unicode):
-                dict_replace[k] = v.format(**kwargs)
+            try:
+                if isinstance(v, dict):
+                    self._replace_dict(v, **kwargs)
+                elif isinstance(v, list):
+                    dict_replace[k] = [x.format(**kwargs) if isinstance(x,str) else x for x in v]
+                elif isinstance(v, str) or isinstance(v, unicode):
+                    dict_replace[k] = v.format(**kwargs)
+            except Exception as e:
+                raise Exception(k)
 
     def _set_mongo(self):
         mongo = MongoClient(self.config['mongodb']['host'],int(self.config['mongodb']['port']))
