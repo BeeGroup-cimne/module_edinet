@@ -165,6 +165,8 @@ class BaselineModule(BeeModule2):
         #add input table to be deleted after execution
         self.context.add_clean_hive_tables(input_table)
         qbr = RawQueryBuilder(self.hive)
+        # select * from (select a.ts, a.deviceid, a.value, a.energytype, a.source, a.data_type, 'C6' as stationid from edinet_hourly_consumption a) a join edinet_meteo b on a.stationid==b.stationid and a.ts==b.ts;
+
         sentence = """
             INSERT OVERWRITE TABLE {input_table}
             SELECT deviceId, ts, value, accumulated, energyType FROM
