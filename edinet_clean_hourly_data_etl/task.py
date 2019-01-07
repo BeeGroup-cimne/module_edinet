@@ -218,7 +218,7 @@ from module_edinet.edinet_clean_hourly_data_etl.task import ETL_clean_hourly
 from datetime import datetime
 params = {
     "result_companyId": "1092915978",
-    "data_companyId": ["1092915978"],
+    "data_companyId": ["3230658933"],
     "ts_to": datetime(2017,12,01)
 }
 t = ETL_clean_hourly()

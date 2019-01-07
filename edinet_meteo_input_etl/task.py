@@ -40,12 +40,13 @@ class ETL_mh_hadoop(BeeModule2):
            or there are no more documents on cursor
         """
         buffer = []
-        for c in cursor:
-            buffer.append(c)
-            if len(buffer) >= n:
-                yield buffer
-                buffer = []
-        yield buffer
+        for i in range(n):
+            try:
+                buffer.append(cursor.next())
+            except StopIteration as e:
+                return False, buffer
+
+        return True, buffer
 
 
 
@@ -145,28 +146,34 @@ class ETL_mh_hadoop(BeeModule2):
         measures_collection = self.config['mongodb']['collection']
 
         self.logger.debug('Querying for measures in MongoDB: {}'.format(query))
-        cursor = self.mongo[measures_collection].find(query)
-
         """LOAD THE MEASURES TO HBASE"""
+        try:
+            cursor = self.mongo[measures_collection].find(query)
+            i = 0
+            continue_loop = True
+            while continue_loop:
+                continue_loop, buffer = self.create_buffer(cursor, buffer_size)
+                # Copy buffer to hdfs
+                self.logger.debug('Creating buffer to execute hadoop job. Buffer size: {}'.format(buffer_size))
+                file = self.create_pickle_file_from_buffer(buffer)
+                try:
+                    # Launch MapReduce job
+                    ## Buffered measures to HBase
+                    self.logger.debug('Loading the buffer to Hbase from {} to {}'.format(buffer_size * i, buffer_size * (i + 1)))
+                    job_report = self.hadoop_job(file.name, companyId)
+                except Exception as e:
+                    raise Exception('MRJob process on MongoDB-HBase ETL job has failed: {}'.format(e))
 
-        self.logger.debug('Creating buffer to execute hadoop job. Buffer size: {}'.format(buffer_size))
+                self.logger.info('A Hadoop job performing ETL process has finished. Loaded {} measures'.format(len(buffer)))
 
-        for buffer in self.create_buffer(cursor, buffer_size):
-            # Copy buffer to hdfs
-            file = self.create_pickle_file_from_buffer(buffer)
-            try:
-                # Launch MapReduce job
-                ## Buffered measures to HBase
-                self.logger.debug('Loading the buffer to Hbase')
-                job_report = self.hadoop_job(file.name, companyId)
-            except Exception as e:
-                raise Exception('MRJob process on MongoDB-HBase ETL job has failed: {}'.format(e))
-
-            self.logger.info('A Hadoop job performing ETL process has finished. Loaded {} measures'.format(len(buffer)))
-
-            # remove temporary file
-            self.logger.debug('Removing temporary local CSV file: {}'.format(file.name))
-            file.unlink(file.name)
+                # remove temporary file
+                self.logger.debug('Removing temporary local CSV file: {}'.format(file.name))
+                file.unlink(file.name)
+                i += 1
+                self.mongo_client, self.mongo = self._set_mongo()
+                cursor = self.mongo[measures_collection].find(query, skip=buffer_size * i)
+        except Exception as e:
+            raise e
 
         """
          DELETE THE REST MEASURES THAT HAS BEEN UPLOADED TO HBASE"""

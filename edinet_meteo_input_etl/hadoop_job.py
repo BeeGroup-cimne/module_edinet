@@ -38,6 +38,17 @@ class Hadoop_ETL(MRJob):
                 )
         self.mongo[self.config['mongodb']['db']]["there"].insert_one({"AAAA":10})
 
+    def reducer_init(self):
+        # recover json configuration uploaded with script
+        fn = glob.glob('*.json')
+        self.config = load(open(fn[0]))
+
+        # open connections
+        self.hbase = happybase.Connection(self.config['hbase']['host'], self.config['hbase']['port'])
+        self.hbase.open()
+
+        self.tables_list = self.hbase.tables()
+
     def build_row_key(self, doc):
         row_key = []
         for element in self.config['hbase_table']['key']:
@@ -104,13 +115,19 @@ class Hadoop_ETL(MRJob):
         except:
             pass
             
-        hbase_table = self.hbase.table(table_name)
+        #hbase_table = self.hbase.table(table_name)
             
-        hbase_table.put(row_key, row)
+        #hbase_table.put(row_key, row)
         
-        #yield row_key, str(row, table_name)  
+        yield doc['stationId'], {"key": row_key, "row": row}
     
-    
+    def reducer(self, key, values):
+        table_name = self.config['hbase_table']['name']
+        hbase_table = self.hbase.table(table_name)
+        batch = hbase_table.batch()
+        for v in values:
+            batch.put(v['key'], v['row'])
+        batch.send()
     
 if __name__ == '__main__':
     Hadoop_ETL.run()    
