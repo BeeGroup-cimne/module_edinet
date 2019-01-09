@@ -149,8 +149,10 @@ class ETL_clean_daily(BeeModule2):
             sentence += """) unionResult """
 
             self.logger.debug(sentence)
-            qbr.execute_query(sentence)
-
+            try:
+                qbr.execute_query(sentence)
+            except:
+                continue
 
         ######################################################################################################################################################################################
         """ SETUP MAP REDUCE JOB """
@@ -225,7 +227,7 @@ from module_edinet.edinet_clean_daily_data_etl.task import ETL_clean_daily
 from datetime import datetime
 params = {
     "result_companyId": "1092915978",
-    "data_companyId": ["1092915978"],
+    "data_companyId": ["3230658933"],
     "ts_to": datetime(2017,12,01)
 }
 t = ETL_clean_daily()

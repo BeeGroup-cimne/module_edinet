@@ -5,7 +5,7 @@
 task_exec_file=task.py
 
 # module name
-task_name=edinet_baseline
+task_name=edinet_baseline_monthly_module
 
 # celery queue to add this task
 queue=modules
