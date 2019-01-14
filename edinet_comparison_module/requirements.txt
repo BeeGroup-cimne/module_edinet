@@ -1,4 +1,3 @@
--i https://217.182.160.171:9002/bgruser/stable/
 backports.functools-lru-cache==1.5
 bee-data-cleaning==0.0.5
 bee-dataframes==0.0.2
@@ -23,18 +22,20 @@ google-cloud-storage==1.12.0
 google-resumable-media==0.3.1
 googleapis-common-protos==1.5.3
 happybase==1.1.0
-hive-functions==0.0.9
+hive-functions==0.0.12
 idna==2.7
 ipython-genutils==0.2.0
 jmespath==0.9.3
 jsonschema==2.6.0
 jupyter-core==4.4.0
 kiwisolver==1.0.1
+list-functions==0.0.2
 matplotlib==2.2.3
 mrjob==0.6.5
 nbformat==4.4.0
 numpy==1.15.1
 pandas==0.23.4
+patsy==0.5.1
 plotly==3.2.1
 ply==3.11
 protobuf==3.6.1
@@ -54,10 +55,10 @@ sasl==0.2.1
 scipy==1.1.0
 six==1.11.0
 snakebite==2.11.0
+statsmodels==0.9.0
 subprocess32==3.5.2
 thrift==0.11.0
 thriftpy==0.3.9
 traitlets==4.3.2
 urllib3==1.23
 virtualenv==16.0.0
-statsmodels==0.9.0

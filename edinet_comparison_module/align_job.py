@@ -53,16 +53,12 @@ class MRJob_align(MRJob):
         d = {
              'deviceid': ret[0],
              'date': datetime.fromtimestamp(float(ret[1])),
-             'energyType': ret[4]
+             'energyType': ret[3]
         }
         try:
             d['value'] = float(ret[2]) 
         except:
             d['value'] = None
-        try:
-            d['accumulated'] = float(ret[3]) 
-        except:
-            d['accumulated'] = None
         modelling_units = self.devices[str(ret[0])]
         for modelling_unit in modelling_units:
             yield modelling_unit, d
@@ -70,7 +66,7 @@ class MRJob_align(MRJob):
     
     def reducer(self, key, values):
         # obtain the needed info from the key 
-        modelling_unit, multipliers, model = key.split('~')
+        modelling_unit, multipliers = key.split('~')
         # find the building inside the mongo
         buildingID = None
         mongo_building = self.mongo[self.config['mongodb']['db']][self.config['mongodb']['buildings_collection']]
@@ -99,13 +95,13 @@ class MRJob_align(MRJob):
         v = []
         for i in values:
             v.append(i)
-        df = pd.DataFrame.from_records(v, index='date', columns=['value','accumulated','date','deviceid','energyType'])
-        df = df.sort_index()
+        df_new = pd.DataFrame.from_records(v, index='date', columns=['value','date','deviceid','energyType'])
+        df_new = df_new.sort_index()
 
         # apply the multiplier over each deviceId value and sum all the values 
-        grouped = df.groupby('deviceid')
+        grouped = df_new.groupby('deviceid')
 
-        df_new = create_dataframes.create_daily_dataframe(grouped, multiplier)
+        #df_new = create_dataframes.create_daily_dataframe(grouped, multiplier)
 
         #final dataframe with monthly data and number of days within each month
         df_new.dropna(inplace=True)

@@ -49,9 +49,9 @@ class SimilarsDistribution(MRJob):
         for item_v in self.variables:
             for item in json.loads(dl[item_v]):
                 if item_v=='rawMonths':              ## Days normalization in rawMonths case
-                    item['v']=item['v']*item.get('td')/item.get('rd') 
+                    item['v']=(item['v']*item.get('td')/item.get('rd')) if 'rd' in item and item['rd'] > 0 else 0
                     if item['v_surf'] != 'null':
-                        item['v_surf']=item['v_surf']*item.pop('td')/item.pop('rd')
+                        item['v_surf']=(item['v_surf']*item.pop('td')/item.pop('rd')) if 'rd' in item and item['rd'] > 0 else 0
                     else:
                         item['v_surf']=None
                         item.pop('td')
@@ -135,13 +135,13 @@ class SimilarsDistribution(MRJob):
 
                 setInDict(results, keys,
                           {
-                              'p5': pretty_numeric(to_compute[key_variable].dropna().quantile(0.05)),
-                              'p25': pretty_numeric(to_compute[key_variable].dropna().quantile(0.25)),
-                              'p50': pretty_numeric(to_compute[key_variable].dropna().quantile(0.50)),
-                              'p75': pretty_numeric(to_compute[key_variable].dropna().quantile(0.75)),
-                              'p95': pretty_numeric(to_compute[key_variable].dropna().quantile(0.95)),
+                              'p5': pretty_numeric(to_compute[key_variable].dropna().quantile(0.05)) if not to_compute[key_variable].dropna().empty else None,
+                              'p25': pretty_numeric(to_compute[key_variable].dropna().quantile(0.25)) if not to_compute[key_variable].dropna().empty else None,
+                              'p50': pretty_numeric(to_compute[key_variable].dropna().quantile(0.50)) if not to_compute[key_variable].dropna().empty else None,
+                              'p75': pretty_numeric(to_compute[key_variable].dropna().quantile(0.75)) if not to_compute[key_variable].dropna().empty else None,
+                              'p95': pretty_numeric(to_compute[key_variable].dropna().quantile(0.95)) if not to_compute[key_variable].dropna().empty else None,
                               'mean': pretty_numeric(to_compute[key_variable].mean()),
-                              'sd': pretty_numeric(to_compute[key_variable].std())
+                              'sd': pretty_numeric(to_compute[key_variable].std()),
                           })
             
             #Penalty (pcust) calculation depending the number of customers (ncust)

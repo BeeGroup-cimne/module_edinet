@@ -56,8 +56,8 @@ class SimilarsBestCriteria(MRJob):
         if dl[item_v] != "\N" or dl[item_v] != "\\N":
             for item in json.loads(dl[item_v]):
                 if item_v=='rawMonths':              ## Days normalization in rawMonths case
-                    item['v']=item['v']*item.get('td')/item.get('rd') ##
-                    item['v_surf']=item['v_surf']*item.get('td')/item.get('rd') if item['v_surf'] != 'null' else None
+                    item['v']=item['v']*item.get('td')/item.get('rd') if 'rd' in item and item['rd'] > 0 else None ##
+                    item['v_surf']=item['v_surf']*item.get('td')/item.get('rd') if item['v_surf'] != 'null' and 'rd' in item and item['rd'] > 0 else None
                 ym = int(item.pop(self.key_yearmonths))
                 value = getFromDict(item,self.keys_for_filtering_and_best_criteria[1:]) if len(self.keys_for_filtering_and_best_criteria)>1 else item
                 if not ym in value_months:
@@ -82,7 +82,8 @@ class SimilarsBestCriteria(MRJob):
                     unique_ym = unique(list(df_i.index))
                     val = list(df_i[item_v])
                     df_s_i = self.df_similars[[item in unique_ym for item in list(self.df_similars.index)]]               
-                    
+                    if df_s_i.empty:
+                        continue
                     for cg in criteria_groups:
                         # Get the similar neighbors within this criteria group
                         similar = df_s_i[list(df_s_i.criteria==cg[0])]

@@ -5,7 +5,7 @@
 task_exec_file=task.py
 
 # module name
-task_name=edinet_comparison
+task_name=edinet_comparison_module
 
 # celery queue to add this task
 queue=modules
