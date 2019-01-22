@@ -91,7 +91,7 @@ class ETL_mh_hadoop_tertiary(BeeModule2):
         str_dtnow = dtnow.strftime("%Y%m%d%H%M")
 
         mr_job = Hadoop_ETL(args=['-r', 'hadoop', input, '--file', f.name, '--output-dir',
-                                  self.config['error_measures'].format(str(companyId), str_dtnow),
+                                  "{}{}/{}".format(self.config['error_measures'], str(companyId), str_dtnow),
                                   '-c', 'module_edinet/edinet_metering_measures_etl/mrjob.conf'])
         # mr_job = Hadoop_ETL(args=['-r', 'hadoop', input, '--file', f.name, '--python-archive', path.dirname(lib.__file__)])
         with mr_job.make_runner() as runner:

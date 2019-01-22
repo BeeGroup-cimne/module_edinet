@@ -150,7 +150,7 @@ class BaselineModule(BeeModule2):
                         ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
                         ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss")) a
                 JOIN {device_stations} b on a.deviceId==b.deviceId
-                JOIN edinet_meteo c on b.stationId==c.stationId and a.ts==c.ts
+                JOIN  edinet_meteo c on b.stationId==c.stationId and SUBSTR(FROM_UNIXTIME(a.ts), 1, 13) == SUBSTR(FROM_UNIXTIME(c.ts), 1, 13)
                 """.format(input_table=input_table, ts_from=ts_from, ts_to=ts_to, device_stations=device_stations)
 
         self.logger.debug(sentence)

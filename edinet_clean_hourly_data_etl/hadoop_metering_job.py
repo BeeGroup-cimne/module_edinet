@@ -130,11 +130,18 @@ class MRJob_clean_metering_data(MRJob):
 
                 if df_etype_group.value.isnull().all():  # accumulated
                     if freq <= hour_delta: # sub-hourly frequency
-                        df_etype_group = df_etype_group.resample("H").max().interpolate().diff(1,0).rename(
-                            {"accumulated":"value"})
+                        if freq <= timedelta(minutes=30):
+                            df_etype_group = df_etype_group.resample("30T").max().interpolate().diff(1, 0).rename(
+                                {"accumulated": "value"})
+                        else:
+                            df_etype_group = df_etype_group.resample("H").max().interpolate().diff(1,0).rename(
+                                {"accumulated":"value"})
                 elif df_etype_group.accumulated.isnull().all(): #instant
                     if freq <= hour_delta:  # sub-hourly frequency
-                        df_etype_group = df_etype_group.resample("H").sum()
+                        if freq <= timedelta(minutes=30):
+                            df_etype_group = df_etype_group.resample("30T").sum()
+                        else:
+                            df_etype_group = df_etype_group.resample("H").sum()
                 else:
                     self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering"}, {"$set": {
                         "errors" : "device with accumulated and instant values at the same metering"
@@ -164,7 +171,7 @@ class MRJob_clean_metering_data(MRJob):
                                                     "znorm_outliers_hourly": znorm_outliers,
                                                     "max_outliers_hourly": max_outliers,
                                                     "gaps": missing_values,
-                                                    "frequency": freq.resolution,
+                                                    "frequency": freq.isoformat(),
                                                     "duplicated_values": duplicated_values
                                                    }
                                                 }, upsert=True)

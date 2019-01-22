@@ -21,7 +21,7 @@ password = "3nm1C--3d1n3t"
 
 conn = BeeDataConnection(db,host,username,password)
 
-x = conn.mongo_query_find_one('raw_data', {"deviceId": "053714f0-f543-597c-b884-6cd2d6e841dd"})
+x = conn.mongo_query_find_one('raw_data', {"deviceId": "4789a2cf-d00a-539c-afd0-705dd01bf721"})
 x = conn.mongo_query_find_one('raw_data', {"deviceId": "0593785b-14b6-50d3-9bff-92e9f58051cb"})
 x = conn.mongo_query_find_one('raw_data', {"deviceId": "081fb5a6-ec15-5300-a00d-ea419dd700ce"})
 x = conn.mongo_query_find_one('raw_data', {"deviceId": "086cc9a5-210f-5349-af77-9611130a59b0"})
