@@ -86,10 +86,6 @@ class MRJob_align(MRJob):
     def reducer(self, key, values):
         # obtain the needed info from the key
         modelling_unit, multipliers = key.split('~')
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "starting task"}},
-            upsert=True)
         multipliers = ast.literal_eval(multipliers) #string to dict
         multiplier = {}
         for i in multipliers:
@@ -118,23 +114,13 @@ class MRJob_align(MRJob):
 
 
 
-        #energy_type = modellingUnit_doc['energyType'] if modellingUnit_doc and \
-        #                                                 'energyType' in modellingUnit_doc else None
+        energy_type = df['energyType'].unique()[0]
         #### NYAPA
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "start hourly baseline"}},
-            upsert=True)
         hourly_baseline = {}
         # if '80d32f1a-dee3-5e54-a64a-4460fdcfbaff' == modelling_unit:
         #     hourly_baseline = baseline_calc_pyemis_new(df_new_hourly, tdf, model, energy_type, iters=16)
         # else:
-        hourly_baseline = baseline_calc_pyemis_old(df_new_hourly, df_weather, "'Weekly60Min'", "electricity_consumption", iters=16)
-
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "finished hourly baseline"}},
-            upsert=True)
+        hourly_baseline = baseline_calc_pyemis_old(df_new_hourly, df_weather, energy_type, iters=16)
 
         baseline = {
             'companyId': int(self.company),

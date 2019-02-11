@@ -1,7 +1,14 @@
-# EDINET Backend project
+# EDINET Data Analysis
 
 ## Modules available.
-- edinet_baseline
+- [edinet_billing_measures_etl](edinet_billing_measures_etl/README.md)
+- [edinet_metering_measures_etl](edinet_metering_measures_etl/README.md)
+- edinet_meteo_measures
+- edinet_clean_daily
+- edinet_clean_hourly
+- edinet_clean_meteo
+- edinet_baseline_hourly
+- edinet_baseline_monthly
 
 ## Instructions to run the modules
 ### edinet_baseline
