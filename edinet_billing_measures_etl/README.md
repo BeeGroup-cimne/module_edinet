@@ -4,6 +4,35 @@ This module is used to upload to the backend the billing information of the devi
 
 It will read the data from "MongoDB" and put it to the HBASE table.
 
+### module configuration
+
+```json
+{
+    "mongodb": {
+        "collection": "metering_DB_name"
+    },
+    "hbase_table": {
+        "name": "HBase table name",
+        "key": [
+            "timestamp",
+            "deviceId"
+        ],
+        "cf": [
+            {
+                "fields": [
+                    "v"
+                ],
+                "name": "m"
+            }
+        ]
+    },
+    "backup_folder": "folder for backup",
+    "error_measures": "folder to store erroneous data points"
+
+
+}
+```
+
 ### How to run:
 
 ``` python

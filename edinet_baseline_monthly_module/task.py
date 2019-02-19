@@ -189,24 +189,3 @@ t = BaselineModule()
 t.run(params) 
     """
 
-
-"""
-SELECT a.deviceId, a.ts, a.value, a.energyType, c.temp as temperature FROM
-                (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType 
-                FROM edinet_daily_consumption ai
-                WHERE
-                    ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
-                    ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss")) a
-                JOIN {device_stations} b on a.deviceId==b.deviceId
-                JOIN SELECT * FROM (SELECT a2.stationid, AVG(a2.temperature) as temp, TO_DATE(FROM_UNIXTIME(a2.ts)) AS time FROM edinet_meteo a2 GROUP BY TO_DATE(FROM_UNIXTIME(a2.ts)), a2.stationid) c on b.stationId==c.stationId and a.ts==c.time
-            
-    
-SELECT a.deviceId, a.ts, a.value, a.energyType, b.stationId, c.temp as temperature FROM
-    (SELECT ai.deviceid as deviceId, UNIX_TIMESTAMP(TO_DATE(FROM_UNIXTIME(ai.ts)), "yyyy-MM-dd") as ts, ai.value as value, ai.energyType as energyType 
-     FROM edinet_daily_consumption ai
-     WHERE
-        ai.ts >= UNIX_TIMESTAMP("2016-06-01 23:59:59","yyyy-MM-dd HH:mm:ss") AND
-        ai.ts <= UNIX_TIMESTAMP("2018-06-01 23:59:59","yyyy-MM-dd HH:mm:ss")) a
-     JOIN edinet_device_stations_table_9566e4944fb64fc497d7bf046c43464d b on a.deviceId==b.deviceId
-     JOIN (SELECT a2.stationid, AVG(a2.temperature) as temp, UNIX_TIMESTAMP(TO_DATE(FROM_UNIXTIME(a2.ts)), "yyyy-MM-dd") as time FROM edinet_meteo a2 GROUP BY TO_DATE(FROM_UNIXTIME(a2.ts)), a2.stationid) c ON b.stationId==c.stationId and a.ts==c.time
-"""

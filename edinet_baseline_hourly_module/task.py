@@ -155,35 +155,7 @@ class BaselineModule(BeeModule2):
 
         self.logger.debug(sentence)
         qbr.execute_query(sentence)
-        # qbr = RawQueryBuilder(self.hive)
-        # # select * from (select a.ts, a.deviceid, a.value, a.energytype, a.source, a.data_type, 'C6' as stationid from edinet_hourly_consumption a) a join edinet_meteo b on a.stationid==b.stationid and a.ts==b.ts;
-        # sentence = """
-        #     INSERT OVERWRITE TABLE {input_table}
-        #     SELECT a.deviceId, a.ts, a.value, a.energyType, b.temperature FROM
-        #     {inner_query}"""
-        # text = []
-        # for index, device in enumerate(device_key):
-        #     if device == "ES0021000003135201QE" or device == "ES0031446414679002HG0F" or device == "ES0031405681705001KJ":
-        #         self.logger.debug("ES AQUI ")
-        #     var = "a{}".format(index)
-        #     text.append(""" SELECT {var}.deviceid as deviceId, {var}.ts as ts, {var}.value as value,
-        #                            {var}.energyType as energyType, '{station}' as stationid FROM edinet_hourly_consumption {var}
-        #                       WHERE
-        #                           {var}.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
-        #                           {var}.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss") AND
-        #                           {var}.deviceid == '{device}'
-        #                       """.format(var=var, device=device, station=stations[device], ts_from=ts_from, ts_to=ts_to))
-        # query_text = """UNION ALL""".join(text)
-        #
-        # join_text = """({query}) a join edinet_meteo b on a.stationid==b.stationid and a.ts==b.ts""".format(query=query_text)
-        #
-        # vars = {
-        #     'input_table': input_table,
-        #     'inner_query': join_text
-        # }
 
-        #self.logger.debug(sentence.format(**vars))
-        #qbr.execute_query(sentence.format(**vars))
         ######################################################################################################################################################################################
         """ SETUP MAP REDUCE JOB """
         ######################################################################################################################################################################################
@@ -217,13 +189,3 @@ t.run(params)
     """
 
 
-"""
-SELECT a.deviceId, a.ts, a.value, a.energyType, c.temperature FROM
-    (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType 
-     FROM edinet_hourly_consumption ai
-     WHERE
-        ai.ts >= UNIX_TIMESTAMP("2016-06-01 23:59:59","yyyy-MM-dd HH:mm:ss") AND
-        ai.ts <= UNIX_TIMESTAMP("2018-06-01 23:59:59","yyyy-MM-dd HH:mm:ss")) a
-     JOIN edinet_device_stations_table_13f61369565d404a8883a6fc25ad72d2 b on a.deviceId==b.deviceId
-     JOIN edinet_meteo c on b.stationId==c.stationId and a.ts==c.ts
-"""

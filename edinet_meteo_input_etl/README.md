@@ -1,6 +1,6 @@
-## Edinet metering measures
+## Edinet meteo measures
 
-This module is used to upload to the backend the metering information of the devices.
+This module is used to upload to the backend the meteo information for a meteo station.
 
 It will read the data from "MongoDB" and put it to the HBASE table.
 
@@ -36,10 +36,10 @@ It will read the data from "MongoDB" and put it to the HBASE table.
 ### How to run:
 
 ``` python
-from module_edinet.edinet_metering_measures_etl.task import ETL_mh_hadoop_tertiary
+from module_edinet.edinet_meteo_input_etl.task import ETL_mh_hadoop
 from datetime import datetime
 params = {}
-t = ETL_mh_hadoop_tertiary()
+t = ETL_mh_hadoop()
 t.run(params) 
 ```
  
