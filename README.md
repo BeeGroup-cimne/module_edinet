@@ -6,7 +6,7 @@ Project to execute the data analysis required for the Edinet and similar project
 1. Clone the edinet in the "projects" folder.
 
 2. Set the `config.json` with the proper configuration
-````json
+```json
 {
 	"mongodb" : {
 		"host": "hostname",
