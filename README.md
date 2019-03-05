@@ -54,7 +54,7 @@ export virtualenv_path=/path/to/virtualenv
 export cert=/path/to/devpi/certificate.pem
 ```
 
-4. Set the module `config.jsonif` required(if it includes the same information as parent config.json it will override this information)
+4. Set the module `config.json` if required(if it includes the same information as parent config.json it will override this information)
 
 5. Set the variables in `module_variables.sh`
 
