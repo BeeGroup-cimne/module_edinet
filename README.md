@@ -1,12 +1,12 @@
 # EDINET Data Analysis
 Project to execute the data analysis required for the Edinet and similar projects.
 
-## Configuration of module in 10 steps
+## Configuration of module
 
-1- Clone the edinet in the "projects" folder.
+1. Clone the edinet in the "projects" folder.
 
-2- Set the config.json with the proper configuration
-
+2. Set the `config.json` with the proper configuration
+````json
 {
 	"mongodb" : {
 		"host": "hostname",
@@ -41,8 +41,10 @@ Project to execute the data analysis required for the Edinet and similar project
 		"streaming_jar": "/usr/lib/hadoop/hadoop-streaming.jar"
 	}
 }
-3- Set the variables in general_variables.sh
+```
+3. Set the variables in `general_variables.sh`
 
+```bash
 #! /bin/bash
 
 # virtualenv exec path
@@ -50,11 +52,13 @@ export virtualenv_path=/path/to/virtualenv
 
 # pip server certificate
 export cert=/path/to/devpi/certificate.pem
+```
 
-4- Set the module config.jsonif required(if it includes the same information as parent config.json it will override this information)
+4. Set the module `config.jsonif` required(if it includes the same information as parent config.json it will override this information)
 
-5- Set the variables in module_variables.sh
+5. Set the variables in `module_variables.sh`
 
+```bash
 #! /bin/bash
 
 . ../general_variables.sh
@@ -72,10 +76,14 @@ debug=0
 
 #current dir path
 pwd=`pwd`
+```
 
-6- Install the modules by running . install.sh in the parent directory.
+6. Install the modules by running `. install.sh` in the parent directory.
 
-7- Add the module/tasks.py to celery router.
+7. Add the module/tasks.py to celery router.
+
+8. Configure the required cronjobs to run the models
+
 
 ## Modules structure.
 The project is structured in three different phases of modules:
