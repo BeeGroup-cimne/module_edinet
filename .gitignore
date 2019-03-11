@@ -4,6 +4,7 @@ config.json
 /tasks.py
 launcher.py
 mrjob.conf
+general_variables.sh
 .DS_Store
 .idea/
 !.modules_config_files/launcher.py
