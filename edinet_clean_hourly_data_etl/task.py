@@ -137,7 +137,7 @@ class ETL_clean_hourly(BeeModule2):
                                       {where}
                                   """.format(var=var, select=select, tab=tab,
                                              where=where))
-            sentence += """UNION ALL
+            sentence += """UNION
                         """.join(text)
             sentence += """) unionResult """
 
