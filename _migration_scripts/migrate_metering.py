@@ -1,8 +1,11 @@
 import happybase
 import json
-old_table_name = "electricityConsumption_3230658933"
+import sys
+table_name = sys.argv[1]
 
-table_name = "edinet_metering_{}".format(old_table_name)
+old_table_name = "edinet_old_{}".format(table_name)
+
+table_name = "edinet_metering_{}".format(table_name)
 
 config = json.load(open("module_edinet/config.json"))
 
