@@ -19,7 +19,7 @@ def calculate_frequency(dataset):
         return None
 
 
-def monthly_calc(modelling_unit, tdf, company, multipliers, model, df_new):
+def monthly_calc(modelling_unit, tdf, company, multipliers, df_new):
     """
     Calculates the monthly model following this steeps
         - Translate the monthly data to daily
