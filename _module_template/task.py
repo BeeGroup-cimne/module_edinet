@@ -176,7 +176,7 @@ class BaselineModule(BeeModule2):
                                   {var}.key.deviceId IN {devices}
                               """.format(var=var, energy_type=energy_type, tab=tab,
                                          ts_from="{ts_from}", ts_to="{ts_to}", devices="{devices}"))
-        sentence += """UNION ALL
+        sentence += """UNION
                     """.join(text)
         sentence += """) unionResult """
         vars = {

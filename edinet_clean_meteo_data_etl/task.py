@@ -167,7 +167,7 @@ class ETL_clean_meteo(BeeModule2):
             select = ", ".join([f[1] for f in self.config['output']["sql_sentence_select"]]).format(var=var, data_type=tab[1])
             text.append(""" SELECT {select} FROM {tab} {var}
                               """.format(var=var, select=select, tab=tab[0]))
-        sentence += """UNION ALL
+        sentence += """UNION
                     """.join(text)
         sentence += """) unionResult """
 
