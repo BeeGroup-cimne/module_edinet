@@ -12,7 +12,14 @@ from pyEMIS2.models.weekly import Factory as WF
 from pyEMIS2.models.constant import Factory as c
 from pyEMIS2.models.heating3 import Factory as h3
 
-def monthly_calc(modelling_unit, tdf, company, multipliers, df_new):
+def calculate_frequency(dataset):
+    if len(dataset.index) > 1:
+        return (pd.Series(dataset.index[1:]) - pd.Series(dataset.index[:-1])).value_counts().index[0]
+    else:
+        return None
+
+
+def monthly_calc(modelling_unit, tdf, company, multipliers, model, df_new):
     """
     Calculates the monthly model following this steeps
         - Translate the monthly data to daily
@@ -155,7 +162,17 @@ def monthly_calc(modelling_unit, tdf, company, multipliers, df_new):
             '_created': datetime.now()
         }
 
-def baseline_calc_pyemis_old(df_new, tdf, model, energy_type, iters=16):
+def baseline_calc_pyemis_old(df_new, tdf, energy_type, iters=16):
+    freq = calculate_frequency(df_new)
+    if not freq:
+        return {
+            'error': "the frequency of the timeseries can't be analyzed"
+        }
+    if freq < timedelta(hours=1):
+        model = 'Weekly30Min'
+    else:
+        model = 'Weekly60Min'
+
     if model == 'Weekly30Min':
         n = -336
         frequ = 30

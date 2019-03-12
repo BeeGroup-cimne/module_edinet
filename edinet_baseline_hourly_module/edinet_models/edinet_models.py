@@ -164,6 +164,10 @@ def monthly_calc(modelling_unit, tdf, company, multipliers, model, df_new):
 
 def baseline_calc_pyemis_old(df_new, tdf, energy_type, iters=16):
     freq = calculate_frequency(df_new)
+    if not freq:
+        return {
+            'error': "the frequency of the timeseries can't be analyzed"
+        }
     if freq < timedelta(hours=1):
         model = 'Weekly30Min'
     else:
