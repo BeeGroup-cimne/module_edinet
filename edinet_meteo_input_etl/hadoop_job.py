@@ -36,7 +36,6 @@ class Hadoop_ETL(MRJob):
                 self.config['mongodb']['username'],
                 self.config['mongodb']['password']
                 )
-        self.mongo[self.config['mongodb']['db']]["there"].insert_one({"AAAA":10})
 
     def reducer_init(self):
         # recover json configuration uploaded with script
