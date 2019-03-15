@@ -137,10 +137,12 @@ class MRJob_clean_metering_data(MRJob):
                             {"accumulated": "value"})
 
                 elif df_etype_group.accumulated.isnull().all(): #instant
+                    df_etype_group=df_etype_group[['value']]
                     if freq < day_delta:  # sub-daily frequency
                         df_etype_group = df_etype_group.resample("D").sum()
                     else: # super-daily frequency
-                        df_etype_group = df_etype_group.cumsum().resample("D").interpolate().diff(1, 0)
+                        df_etype_group.value = df_etype_group.value.cumsum()
+                        df_etype_group = df_etype_group.resample("D").interpolate().diff(1,0)
                 else:
                     self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering"}, {"$set": {
                         "errors" : "device with accumulated and instant values at the same metering"
