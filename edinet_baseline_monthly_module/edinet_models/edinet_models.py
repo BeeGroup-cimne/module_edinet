@@ -36,6 +36,17 @@ def monthly_calc(modelling_unit, tdf, company, multipliers, df_new):
     # TODO: No sabem quina de les mesures s'elimina. Mirar de quedar-se amb les horaries.
     df_new = df_new.reset_index().drop_duplicates(subset='date', keep='last').set_index('date')
     weather_data = pd.DataFrame(tdf)
+    if weather_data.temperature.isnull().all():
+        return {
+            'companyId': int(company),
+            'devices': str(multipliers),
+            'timestamps_month': [0],
+            'values_month': [0],
+            'P50_month': [0],
+            'error': "no weather data found",
+            'modellingUnitId': modelling_unit,
+            '_created': datetime.now()
+        }
     daily_weather_data = weather_data.resample('1D').mean()
     daily_weather_data = calculate_day_degree(daily_weather_data, 18, 22)
     monthly_weather_data = daily_weather_data.resample('1M').mean()
