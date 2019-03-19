@@ -155,7 +155,7 @@ class MRJob_clean_metering_data(MRJob):
                 df_etype_group['value'] = dc.clean_series(df_etype_group['value'], max_outlier_bool)
                 negative_values_bool = dc.detect_min_threshold_outliers(df_etype_group['value'], 0)
                 df_etype_group['value'] = dc.clean_series(df_etype_group['value'], negative_values_bool)
-                znorm_bool = dc.detect_znorm_outliers(df_etype_group['value'], 30, mode="rolling", window=168)
+                znorm_bool = dc.detect_znorm_outliers(df_etype_group['value'], 30, mode="global")
                 df_etype_group['value'] = dc.clean_series(df_etype_group['value'], znorm_bool)
 
                 max_outliers = list(df_etype_group[max_outlier_bool].index)
