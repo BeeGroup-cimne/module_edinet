@@ -85,3 +85,4 @@ for device, df_data in df.groupby("device"):
         row = {"m:v",v['value']}
         batch.put(key, row)
     batch.send()
+print("Removed {} data points, that is a {}% of total data".format(removed_data_points, removed_data_points*100/len(df)))
