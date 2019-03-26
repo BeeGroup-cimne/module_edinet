@@ -23,6 +23,8 @@ tables = hbase.tables()
 if new_table_name in tables:
     raise Exception("Table already migrated")
 
+hbase.create_table(new_table_name, {'m': dict()})
+
 old_keys = [["bucket","bigint"], ["ts_end","bigint"], ["deviceId","string"]]
 columns = [["value", "float", "m:v"]]
 cur = hive.cursor()
@@ -82,7 +84,6 @@ for device, df_data in df.groupby("device"):
     removed_data_points += len(df_data[df_data.gap_total==1])
     df_end = df_data[df_data.gap_total==0][['ts_ini','ts_end','value']]
     #save data to new hbase table
-    cur.create_table(new_table_name, {'m': dict()})
 
     hbase_table = hbase.table(new_table_name)
     batch = hbase_table.batch()
