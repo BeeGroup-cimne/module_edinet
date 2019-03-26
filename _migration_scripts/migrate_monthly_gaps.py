@@ -86,7 +86,7 @@ for device, df_data in df.groupby("device"):
     batch = hbase_table.batch()
     for _, v in df_end.iterrows():
         key = "{}~{}~{}".format(v['ts_ini'], v['ts_end'], device)
-        row = {"m:v": v['value']}
+        row = {"m:v": str(v['value'])}
         batch.put(key, row)
     batch.send()
 print("Removed {} data points, that is a {}% of total data".format(removed_data_points, removed_data_points*100/len(df)))
