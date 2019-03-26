@@ -20,7 +20,7 @@ hive = pyhs2.connect(host=config['hive']['host'],
 
 
 tables = hbase.tables()
-if table_name in tables:
+if new_table_name in tables:
     raise Exception("Table already migrated")
 
 old_keys = [["bucket","bigint"], ["ts_end","bigint"], ["deviceId","string"]]
@@ -45,7 +45,11 @@ while cur.hasMoreRows:
         print("value: {}".format(value))
         print ("******************************************************")
 
+
 df = pd.DataFrame(data)
+sentence = "DROP TABLE {}".format(table)
+cur.execute(sentence)
+
 removed_data_points = 0
 for device, df_data in df.groupby("device"):
     df_data.index = df_data.ts_end
