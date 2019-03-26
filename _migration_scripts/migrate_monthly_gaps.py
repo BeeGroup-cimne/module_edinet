@@ -84,7 +84,7 @@ for device, df_data in df.groupby("device"):
     #save data to new hbase table
     hbase_table = hbase.table(new_table_name)
     batch = hbase_table.batch()
-    for v in df_end.iterrows():
+    for _, v in df_end.iterrows():
         key = "{}~{}~{}".format(v['ts_ini'], v['ts_end'], device)
         row = {"m:v",v['value']}
         batch.put(key, row)
