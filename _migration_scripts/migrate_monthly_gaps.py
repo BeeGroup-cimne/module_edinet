@@ -47,7 +47,7 @@ while cur.hasMoreRows:
 
 
 df = pd.DataFrame(data)
-sentence = "DROP TABLE {}".format(table)
+sentence = "DROP TABLE {}".format(old_table_hive)
 cur.execute(sentence)
 
 removed_data_points = 0
