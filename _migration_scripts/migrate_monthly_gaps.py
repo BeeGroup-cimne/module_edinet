@@ -16,13 +16,13 @@ use migrate_csv_inergy to migrate:
   tertiaryElectricityConsumption_3230658933
 
 use migrate_monthly_gaps to migrate:
-  tertiaryElectricityConsumption_1092915978
-  tertiaryElectricityConsumption_7104124143
-  gasConsumption_1092915978
-  gasConsumption_5052736858
-  gasConsumption_3230658933
-  gasConsumption_7104124143
-  gasConsumption_8801761586
+  "tertiaryElectricityConsumption_1092915978"
+  "tertiaryElectricityConsumption_7104124143"
+  "gasConsumption_1092915978"
+  "gasConsumption_5052736858"
+  "gasConsumption_3230658933"
+  "gasConsumption_7104124143"
+  "gasConsumption_8801761586"
 
 
 no migrate
@@ -140,9 +140,11 @@ for device, df_data in df.groupby("device"):
     else: #sub daily data -> treated as meetering
         new_table_name = "edinet_metering_{}".format(table_name)
         if new_table_name in tables:
-            raise Exception("Table already migrated")
+            print("Table already exists add new data")
+        else:
+            hbase.create_table(new_table_name, {'m': dict()})
+
         df_end = df_data[['ts_end', 'value']]
-        hbase.create_table(new_table_name, {'m': dict()})
         batch = hbase_table.batch()
         for _, v in df_end.iterrows():
             key = "{}~{}".format(v['ts_end'], device)
