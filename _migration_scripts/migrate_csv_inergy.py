@@ -15,17 +15,18 @@ use migrate_metering to migrate:
 use migrate_csv_inergy to migrate:
   tertiaryElectricityConsumption_3230658933
 
+use migrate_monthly_gaps to migrate:
+  tertiaryElectricityConsumption_1092915978
+  tertiaryElectricityConsumption_7104124143
+  gasConsumption_1092915978
+  gasConsumption_5052736858
+  gasConsumption_3230658933
+  gasConsumption_7104124143
+  gasConsumption_8801761586
 
-danger:
- gas consumption ??
- - gasConsumption_1092915978
- - gasConsumption5052736858
- - gasConsumption_3230658933
- - gasConsumption_7104124143
- - gasConsumption_8801761586
- bad tertiarys
- - tertiaryElectricityConsumption_1092915978
- - tertiaryElectricityConsumption_7104124143
+
+no migrate
+  tertiaryElectricityConsumption_3230658933
 
 """
 import pandas as pd
