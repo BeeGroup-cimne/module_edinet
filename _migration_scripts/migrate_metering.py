@@ -34,7 +34,7 @@ import json
 import sys
 table_name = sys.argv[1]
 
-old_table_name = "edinet_old_{}".format(table_name)
+old_table_name = "{}".format(table_name)
 
 table_name = "edinet_metering_{}".format(table_name)
 
