@@ -143,8 +143,8 @@ for device, df_data in df.groupby("device"):
             print("Table already exists add new data")
         else:
             hbase.create_table(new_table_name, {'m': dict()})
-
         df_end = df_data[['ts_end', 'value']]
+        hbase_table = hbase.table(new_table_name)
         batch = hbase_table.batch()
         for _, v in df_end.iterrows():
             key = "{}~{}".format(v['ts_end'], device)
