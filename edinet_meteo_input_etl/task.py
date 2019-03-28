@@ -93,7 +93,7 @@ class ETL_mh_hadoop(BeeModule2):
 
         mr_job = Hadoop_ETL(args=['-r', 'hadoop', input, '--file', f.name, '--output-dir',
                                   self.config['error_measures']+'{}/{}'.format(str(companyId), str_dtnow),
-                                  '-c', 'module_edinet/edinet_meteo_input_etl/mrjob.conf'])
+                                  '-c', 'module_edinet/edinet_meteo_input_etl/mrjob.conf', '-D', "mapred.job.name='meteo_to_hbase'"])
         # mr_job = Hadoop_ETL(args=['-r', 'hadoop', input, '--file', f.name, '--python-archive', path.dirname(lib.__file__)])
         with mr_job.make_runner() as runner:
             try:
