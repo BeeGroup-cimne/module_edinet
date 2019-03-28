@@ -92,7 +92,7 @@ class ETL_mh_hadoop_billing(BeeModule2):
 
         mr_job = Hadoop_ETL(args=['-r', 'hadoop', input, '--file', f.name, '--output-dir',
                                   "{}/{}/{}".format(self.config['error_measures'], str(companyId), str_dtnow),
-                                  '-c', 'module_edinet/edinet_billing_measures_etl/mrjob.conf', '-D', "mapred.job.name='billing_to_hbase'"])
+                                  '-c', 'module_edinet/edinet_billing_measures_etl/mrjob.conf', '--jobconf', 'mapred.job.name=edinet_billing_measures_etl'])
         # mr_job = Hadoop_ETL(args=['-r', 'hadoop', input, '--file', f.name, '--python-archive', path.dirname(lib.__file__)])
         with mr_job.make_runner() as runner:
             try:

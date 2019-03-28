@@ -47,7 +47,7 @@ class BaselineModule(BeeModule2):
         # create hadoop job instance adding file location to be uploaded
         mr_job = MRJob_align(
             args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name, '-c', 'module_edinet/edinet_baseline_monthly_module/mrjob.conf',
-                  '--jobconf', 'mapred.map.tasks=%s' % map_tasks, '--jobconf', 'mapred.reduce.tasks=%s' % red_tasks, '-D', "mapred.job.name='monthly_baseline'"])
+                  '--jobconf', 'mapred.map.tasks=%s' % map_tasks, '--jobconf', 'mapred.reduce.tasks=%s' % red_tasks, '--jobconf', 'mapred.job.name=edinet_baseline_monthly_module'])
         # mr_job = MRJob_align(args=['-r', 'hadoop', 'hdfs://'+input, '--file', f.name, '--output-dir', '/tmp/prova_dani', '--python-archive', path.dirname(lib.__file__)])  # debugger
         with mr_job.make_runner() as runner:
             try:
