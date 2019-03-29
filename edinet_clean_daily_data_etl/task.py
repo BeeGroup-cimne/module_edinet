@@ -43,12 +43,12 @@ class ETL_clean_daily(BeeModule2):
             mr_job = MRJob_clean_billing_data(
                 args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name, '-c', 'module_edinet/edinet_clean_daily_data_etl/mrjob.conf',
                     '--output-dir', 'hdfs://' + output,
-                    '--jobconf', 'mapred.map.tasks=%s' % map_tasks, '--jobconf', 'mapred.reduce.tasks=%s' % red_tasks, '--jobconf', 'mapred.job.name=edinet_clean_daily_data_etl_billing'])
+                    '--jobconf', 'mapred.job.name=edinet_clean_daily_data_etl_billing'])
         elif data_type == "metering":
                 mr_job = MRJob_clean_metering_data(
                     args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name, '-c', 'module_edinet/edinet_clean_daily_data_etl/mrjob.conf',
                         '--output-dir', 'hdfs://' + output,
-                        '--jobconf', 'mapred.map.tasks=%s' % map_tasks, '--jobconf', 'mapred.reduce.tasks=%s' % red_tasks, '--jobconf', 'mapred.job.name=edinet_clean_daily_data_etl_metering'])
+                        '--jobconf', 'mapred.job.name=edinet_clean_daily_data_etl_metering'])
         else:
             raise Exception("The job with data type {} can not be treated".format(data_type))
         with mr_job.make_runner() as runner:
