@@ -10,7 +10,7 @@ use migrate_metering to migrate:
    "electricityConsumption_3230658933"
    "electricityConsumption_7104124143"
    "electricityConsumption_8801761586"
-   "tertiaryElectricityConsumption_8801761586"
+   "tertiaryElectricityConsumption_8801761586" -> should be renamed to monthlyElectricityConsumption
 
 use migrate_csv_inergy to migrate:
   tertiaryElectricityConsumption_3230658933
@@ -55,7 +55,6 @@ hive = pyhs2.connect(host=config['hive']['host'],
                              authMechanism='PLAIN', user=config['hive']['username'], password="")
 
 
-tables = hbase.tables()
 
 old_keys = [["bucket","bigint"], ["ts_end","bigint"], ["deviceId","string"]]
 columns = [["value", "float", "m:v"]]
@@ -97,13 +96,14 @@ for device, df_data in df.groupby("device"):
     day_delta = timedelta(days=1)
     if freq > day_delta: #super daily data -> treated as billing
         new_table_name = "edinet_billing_{}".format(table_name)
-        if new_table_name in tables:
-            raise Exception("Table already migrated")
-
-        hbase.create_table(new_table_name, {'m': dict()})
+        try:
+            hbase.create_table(new_table_name, {'m': dict()})
+        except:
+            pass
+        energy_type = table_name.split("_")[0]
         #add ts_ini as the previous ts_end +1 day. Until gap detection
         df_data['ts_ini'] = df_data.ts_end.shift(+1)+timedelta(days=1)
-        if len(df_data) >= 3:
+        if len(df_data) >= 3 and energy_type != "gasConsumption":
             df_data['days'] = (df_data['ts_end'] - df_data['ts_end'].shift(+1)).dt.days
             df_data['mean_consumption'] = df_data['value'] / df_data['days']
             # Calculo el mode, la mitjana i la mediana dels dies
@@ -131,6 +131,7 @@ for device, df_data in df.groupby("device"):
         #save data to new hbase table
 
         hbase_table = hbase.table(new_table_name)
+        print("writhing to {}".format(new_table_name))
         batch = hbase_table.batch()
         for _, v in df_end.iterrows():
             key = "{}~{}~{}".format(v['ts_ini'], v['ts_end'], device)
@@ -139,10 +140,11 @@ for device, df_data in df.groupby("device"):
         batch.send()
     else: #sub daily data -> treated as meetering
         new_table_name = "edinet_metering_{}".format(table_name)
-        if new_table_name in tables:
-            print("Table already exists add new data")
-        else:
+        print("writhing to {}".format(new_table_name))
+        try:
             hbase.create_table(new_table_name, {'m': dict()})
+        except:
+            pass
         df_end = df_data[['ts_end', 'value']]
         hbase_table = hbase.table(new_table_name)
         batch = hbase_table.batch()
