@@ -47,7 +47,7 @@ def calculate_frequency(dataset):
 
 def datetime_to_timestamp(ts):
     # Input data is always in UTC and the timestamp stored in HBase must be in UTC timezone.
-    return calendar.timegm(ts.utctimetuple())
+    return calendar.timegm(ts.to_pydatetime().utctimetuple())
 
 table_name = sys.argv[1]
 
