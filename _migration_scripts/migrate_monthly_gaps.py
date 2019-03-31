@@ -138,7 +138,9 @@ for device, df_data in df.groupby("device"):
         print("writhing to {}".format(new_table_name))
         batch = hbase_table.batch()
         for _, v in df_end.iterrows():
-            key = "{}~{}~{}".format(datetime_to_timestamp(v['ts_ini']), datetime_to_timestamp(v['ts_end']), device)
+            key = "{}~{}~{}".format(datetime_to_timestamp(v['ts_ini']) if v['ts_ini'] != pd.NaT else None,
+                                    datetime_to_timestamp(v['ts_end']) if v['ts_ini'] != pd.NaT else None,
+                                    device)
             row = {"m:v": str(v['value'])}
             batch.put(key, row)
         batch.send()
