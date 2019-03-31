@@ -29,7 +29,7 @@ no migrate
   tertiaryElectricityConsumption_3230658933
 
 """
-
+import calendar
 from datetime import datetime, timedelta
 
 import happybase
@@ -44,6 +44,10 @@ def calculate_frequency(dataset):
         return (pd.Series(dataset.index[1:]) - pd.Series(dataset.index[:-1])).value_counts().index[0]
     else:
         return None
+
+def datetime_to_timestamp(ts):
+    # Input data is always in UTC and the timestamp stored in HBase must be in UTC timezone.
+    return calendar.timegm(ts.utctimetuple())
 
 table_name = sys.argv[1]
 
@@ -134,7 +138,7 @@ for device, df_data in df.groupby("device"):
         print("writhing to {}".format(new_table_name))
         batch = hbase_table.batch()
         for _, v in df_end.iterrows():
-            key = "{}~{}~{}".format(v['ts_ini'], v['ts_end'], device)
+            key = "{}~{}~{}".format(datetime_to_timestamp(v['ts_ini']), datetime_to_timestamp(v['ts_end']), device)
             row = {"m:v": str(v['value'])}
             batch.put(key, row)
         batch.send()
@@ -149,7 +153,7 @@ for device, df_data in df.groupby("device"):
         hbase_table = hbase.table(new_table_name)
         batch = hbase_table.batch()
         for _, v in df_end.iterrows():
-            key = "{}~{}".format(v['ts_end'], device)
+            key = "{}~{}".format(datetime_to_timestamp(v['ts_end']), device)
             row = {"m:v": str(v['value'])}
             batch.put(key, row)
         batch.send()
