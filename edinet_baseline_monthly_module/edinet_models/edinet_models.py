@@ -40,9 +40,9 @@ def monthly_calc(modelling_unit, tdf, company, multipliers, df_new):
         return {
             'companyId': int(company),
             'devices': str(multipliers),
-            'timestamps_month': [0],
-            'values_month': [0],
-            'P50_month': [0],
+            'timestamps_month': [],
+            'values_month': [],
+            'P50_month': [],
             'error': "no weather data found",
             'modellingUnitId': modelling_unit,
             '_created': datetime.now()
@@ -58,16 +58,16 @@ def monthly_calc(modelling_unit, tdf, company, multipliers, df_new):
         return {
             'companyId': int(company),
             'devices': str(multipliers),
-            'timestamps_month': [0],
-            'values_month': [0],
-            'P50_month': [0],
+            'timestamps_month': [],
+            'values_month': [],
+            'P50_month': [],
             'error': "no data obtained",
             'modellingUnitId': modelling_unit,
             '_created': datetime.now()
         }
 
     # create train and validation sets
-    if len(df_new) > 24:
+    if len(df_new) > 36:
         monthly_data_train = df_new[:-12]
     else:
         monthly_data_train = df_new

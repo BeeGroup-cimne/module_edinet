@@ -29,12 +29,15 @@ def train_model(data, day_degree_column, value_column, plot=False):
 def predict_model(data, model_1, model_2, day_degree_column_1, day_degree_column_2, prediction_column, significance):
     significance_models = [False, False]
     data[prediction_column] = np.nan
+    data['pred_model1'] = np.nan
+    data['pred_model2'] = np.nan
     if model_1 and model_1.pvalues[day_degree_column_1] < significance and model_1.params[day_degree_column_1] > 0:
         print("has significance with {}".format(day_degree_column_1))
         significance_models[0] = True
         data_affected_1 = data[(data[day_degree_column_1] > 0)]
         prediction = model_1.predict(sm.add_constant(data_affected_1[day_degree_column_1]))
-        data[prediction_column] = prediction
+        data[prediction_column][data[day_degree_column_1] > 0] = prediction
+        data['pred_model1'][data[day_degree_column_1] > 0] = prediction
     else:
         print("NO significance with {}".format(day_degree_column_1))
 
@@ -43,7 +46,8 @@ def predict_model(data, model_1, model_2, day_degree_column_1, day_degree_column
         significance_models[1] = True
         data_affected_2 = data[(data[day_degree_column_2] > 0)]
         prediction = model_2.predict(sm.add_constant(data_affected_2[day_degree_column_2]))
-        data[prediction_column] = prediction
+        data[prediction_column][data[day_degree_column_2] > 0] = prediction
+        data['pred_model2'][data[day_degree_column_2] > 0] = prediction
     else:
         print("NO significance with {}".format(day_degree_column_2))
 
@@ -51,11 +55,12 @@ def predict_model(data, model_1, model_2, day_degree_column_1, day_degree_column
         data_affected_3 = data[(data[day_degree_column_1] > 0) & (data[day_degree_column_2] > 0)]
         baseload_1 = model_1.params['const']
         baseload_2 = model_2.params['const']
-        pred_mod_1 = model_1.predict(sm.add_constant(data_affected_3[day_degree_column_1]))
-        pred_mod_2 = model_2.predict(sm.add_constant(data_affected_3[day_degree_column_2]))
+        pred_mod_1 = data_affected_3['pred_model1']
+        pred_mod_2 = data_affected_3['pred_model2']
         pred_mod_1 = pred_mod_1 - baseload_1
         pred_mod_2 = pred_mod_2 - baseload_2
-        data[prediction_column] = np.mean([baseload_1,baseload_2]) + pred_mod_1 + pred_mod_2
+        data[prediction_column][(data[day_degree_column_1] > 0) & (data[day_degree_column_2] > 0)] = np.mean(
+            [baseload_1, baseload_2]) + pred_mod_1 + pred_mod_2
     return data[prediction_column]
 
 def fill_mean_values(data, historic_data, prediction_column, value_column ):
@@ -82,3 +87,4 @@ def plot_model_fitting(model, training_data, day_degree_column, value_column ):
     data_affected = training_data[training_data[day_degree_column] > 0]
     ax = data_affected.plot(x=day_degree_column, y=value_column, kind='scatter')
     ax.plot(data_affected[day_degree_column], model.predict(sm.add_constant(data_affected[day_degree_column])))
+
