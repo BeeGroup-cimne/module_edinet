@@ -1,5 +1,5 @@
 from datetime import datetime
-date_to = datetime.utcnow()
+date_to = datetime(2019,03,01)
 # tasks definitions
 from time import sleep
 metering_measures, billing_measures, meteo_measures = None, None, None 
@@ -76,7 +76,7 @@ while True:
 
 
 #ANALYTICS
-baseline_month, baseline_hour, comparison = None, None, None
+baseline_month, baseline_hour = None, None
 while True:
 	if clean_meteo.ready() and clean_hourly.ready() and clean_monthly.ready() and baseline_month is None: 
 		try:
@@ -100,20 +100,21 @@ while True:
 		except Exception as e:
 			print(e)
 			exit()
-	if clean_hourly.ready() and clean_monthly.ready() and clean_meteo.ready() and comparison is None:
-		try: 
-			from module_edinet.tasks import edinet_comparison_module
-			params = {
-    				'result_companyId': 1092915978,
-    				'ts_to': date_to,
-    				'criteria': ['entityId', 'postalCode', 'useType', 'entityId + postalCode', 'entityId + postalCode + useType', 'entityId + useType']
- 			}
-			comparison = edinet_comparison_module.delay(params)
-		except Exception as e:
-			print(e)
-			exit()
+	# if clean_hourly.ready() and clean_monthly.ready() and clean_meteo.ready() and comparison is None:
+	# 	try:
+	# 		from module_edinet.tasks import edinet_comparison_module
+	# 		params = {
+    # 				'result_companyId': 1092915978,
+    # 				'ts_to': date_to,
+    # 				'criteria': ['entityId', 'postalCode', 'useType', 'entityId + postalCode', 'entityId + postalCode + useType', 'entityId + useType']
+ 	# 		}
+	# 		comparison = edinet_comparison_module.delay(params)
+	# 	except Exception as e:
+	# 		print(e)
+	# 		exit()
 
-	if baseline_month is not None and baseline_hour is not None and comparison is not None:
+	# if baseline_month is not None and baseline_hour is not None and comparison is not None:
+	if baseline_month is not None and baseline_hour is not None:
 		break
 	sleep(1)
 
