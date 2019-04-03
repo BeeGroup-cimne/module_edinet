@@ -65,10 +65,7 @@ class MRJob_align(MRJob):
                 'energyType': ret[3]
                 }
         except Exception as e:
-            self.mongo[self.config['mongodb']['db']]['debug'].update(
-                {'task_id': self.task_id},
-                {'$push': {'errors': str(e)}},
-                upsert=True)
+            pass
 
         try:
             d['value'] = float(ret[2])

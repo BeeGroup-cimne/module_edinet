@@ -65,10 +65,7 @@ class MRJob_align(MRJob):
                 'energyType': ret[4]
                 }
         except Exception as e:
-            self.mongo[self.config['mongodb']['db']]['debug'].update(
-                {'task_id': self.task_id},
-                {'$push': {'errors': str(e)}},
-                upsert=True)
+            pass
 
         try:
             d['value'] = float(ret[2])
@@ -86,10 +83,6 @@ class MRJob_align(MRJob):
     def reducer(self, key, values):
         # obtain the needed info from the key
         modelling_unit, multipliers, model = key.split('~')
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "starting task"}},
-            upsert=True)
         multipliers = ast.literal_eval(multipliers) #string to dict
         multiplier = {}
         for i in multipliers:
@@ -117,11 +110,6 @@ class MRJob_align(MRJob):
 
         # apply the multiplier over each deviceId value and sum all the values
         grouped = df.groupby('deviceid')
-
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "get_data"}},
-            upsert=True)
 
         # Detectem si l'edifici te dades horaries.
         try:
@@ -155,10 +143,6 @@ class MRJob_align(MRJob):
                     buildingId = reporting_item['buildingId']
 
         # si el buildingId es None no cal fer res.
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "check_hourly_data"}},
-            upsert=True)
         if buildingId:
             # Comparem per cada device, energy type si hi ha dades horaries o no
             # pero nomes ho mirem per les ultimes 12 setmanes
@@ -206,10 +190,6 @@ class MRJob_align(MRJob):
         mongo_weather = self.mongo[self.config['mongodb']['db']][
             self.config['mongodb']['weather_collection']]
 
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "starting weather gathering"}},
-            upsert=True)
         # get station temperatures list
         station_doc = mongo_weather.find_one({'stationId': station},{'values': True, 'timestamps': True, })
         # if not station, finish.
@@ -233,10 +213,6 @@ class MRJob_align(MRJob):
         tdf['temperature'] = dc.clean_series(tdf['temperature'], outliers)
         outliers = dc.detect_znorm_outliers(tdf['temperature'], 30, mode="rolling", window=720)
         tdf['temperature'] = dc.clean_series(tdf['temperature'], outliers)
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "finish_weather gathering and starting data"}},
-            upsert=True)
         df_new_montly = create_dataframes.create_daily_dataframe(grouped, multiplier)
         self.mongo[self.config['mongodb']['db']]['debug'].update(
             {'task_id': self.task_id},
