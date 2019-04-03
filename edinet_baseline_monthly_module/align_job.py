@@ -65,10 +65,7 @@ class MRJob_align(MRJob):
                 'energyType': ret[3]
                 }
         except Exception as e:
-            self.mongo[self.config['mongodb']['db']]['debug'].update(
-                {'task_id': self.task_id},
-                {'$push': {'errors': str(e)}},
-                upsert=True)
+            pass
 
         try:
             d['value'] = float(ret[2])
@@ -86,10 +83,6 @@ class MRJob_align(MRJob):
     def reducer(self, key, values):
         # obtain the needed info from the key
         modelling_unit, multipliers = key.split('~')
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "starting task"}},
-            upsert=True)
         multipliers = ast.literal_eval(multipliers) #string to dict
         multiplier = {}
         for i in multipliers:
@@ -117,17 +110,9 @@ class MRJob_align(MRJob):
             df_weather = data[['temperature']]
 
 
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "start monthly baseline"}},
-            upsert=True)
 
         monthly_baseline = monthly_calc(modelling_unit, df_weather, self.company, multipliers, df_new_daily)
 
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "finished hourly baseline"}},
-            upsert=True)
 
         baseline = {
             'companyId': int(self.company),

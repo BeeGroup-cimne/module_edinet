@@ -214,15 +214,7 @@ class MRJob_align(MRJob):
         outliers = dc.detect_znorm_outliers(tdf['temperature'], 30, mode="rolling", window=720)
         tdf['temperature'] = dc.clean_series(tdf['temperature'], outliers)
         df_new_montly = create_dataframes.create_daily_dataframe(grouped, multiplier)
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "finish data gathering and starting baseline monthly"}},
-            upsert=True)
         monthly_baseline = monthly_calc(modelling_unit, tdf, self.company, multipliers, model, df_new_montly)
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "finished monthly and start geting hourly_data"}},
-            upsert=True)
         df_new_hourly = create_dataframes.create_hourly_dataframe(grouped, multiplier, model)
 
         modellingUnit_doc = mongo_modellingUnits.find_one(
@@ -251,21 +243,11 @@ class MRJob_align(MRJob):
         energy_type = modellingUnit_doc['energyType'] if modellingUnit_doc and \
                                                      'energyType' in modellingUnit_doc else None
         #### NYAPA
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "start hourly baseline"}},
-            upsert=True)
         hourly_baseline = {}
         if '80d32f1a-dee3-5e54-a64a-4460fdcfbaff' == modelling_unit:
             hourly_baseline = baseline_calc_pyemis_new(df_new_hourly, tdf, model, energy_type, iters=16)
         else:
             hourly_baseline = baseline_calc_pyemis_old(df_new_hourly, tdf, model, energy_type, iters=16)
-
-        self.mongo[self.config['mongodb']['db']]['debug'].update(
-            {'task_id': self.task_id},
-            {'$push': {'debug': "finished hourly baseline"}},
-            upsert=True)
-
         baseline =  {
             'companyId': int(self.company),
             'devices': str(multipliers),
