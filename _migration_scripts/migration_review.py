@@ -176,7 +176,9 @@ def review_devices(mongo_old, mongo_new):
     energy_type_map={"tertiaryElectricityConsumption":"electricityConsumption", "monthlyElectricityConsumption": "electricityConsumption"}
     data_old = mongo_old['raw_data'].find({})
     devices = data_old.distinct('deviceId')
+    data_final = {}
     for deviceId in devices[0:10]:
+        print(deviceId)
         data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
         data_new = mongo_new['raw_data'].find({"device": deviceId})
         data_map = {}
@@ -184,22 +186,33 @@ def review_devices(mongo_old, mongo_new):
             df = pd.DataFrame({"ts": x['timestamps'], "value": x['values']})
             df.index = pd.to_datetime(df["ts"])
             energy_type = energy_type_map[x['type']] if x['type'] in energy_type_map else x['type']
-            data_map["{}_{}".format(energy_type,x['companyId'])] = {'old': df.values.sum()}
+            try:
+                data_map["{}_{}".format(energy_type, x['companyId'])].update({'old': df.value.sum()})
+            except:
+                data_map["{}_{}".format(energy_type,x['companyId'])] = {'old': df.value.sum()}
         for x in data_new:
             if x['data_type'] == 'metering':
                 df2 = pd.DataFrame.from_records(x['raw_data'])
                 df2.index = pd.to_datetime(df2.ts)
+                df2.value = pd.to_numeric(df2.value)
                 energy_type = energy_type_map[x['energy_type']] if x['energy_type'] in energy_type_map else x['energy_type']
-                data_map["{}_{}".format(energy_type, x['companyId'])] = {'new': df2.values.sum()}
+                try:
+                    data_map["{}_{}".format(energy_type, x['source'])].update({'new': df2.value.sum()})
+                except:
+                    data_map["{}_{}".format(energy_type, x['source'])] = {'new': df2.value.sum()}
 
             if x['data_type'] == 'billing':
                 df2 = pd.DataFrame.from_records(x['raw_data'])
                 df2.index = pd.to_datetime(df2.ts_end)
+                df2.value = pd.to_numeric(df2.value)
                 energy_type = energy_type_map[x['energy_type']] if x['energy_type'] in energy_type_map else x['energy_type']
-                data_map["{}_{}".format(energy_type, x['companyId'])] = {'new': df2.values.sum()}
+                try:
+                    data_map["{}_{}".format(energy_type, x['source'])].update({'new': df2.value.sum()})
+                except:
+                    data_map["{}_{}".format(energy_type, x['source'])] = {'new': df2.value.sum()}
 
-    return return_list
-
+        data_final[deviceId] = data_map
+    return data_final
 
 def get_raw_data(deviceId, mongo_old, mongo_new):
     data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
