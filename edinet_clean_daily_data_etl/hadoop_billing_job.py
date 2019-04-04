@@ -99,7 +99,7 @@ class MRJob_clean_billing_data(MRJob):
         for source, df_source_group in source_group:
             etype_group = df_source_group.groupby('energytype')
             for etype, df_etype_group in etype_group:
-                df_etype_group.dropna(subset=["ts_ini"])
+                df_etype_group = df_etype_group.dropna(subset=["ts_ini"])
                 df_etype_group = df_etype_group.set_index('ts_ini')
                 df_etype_group = df_etype_group.sort_index()
                 df_etype_group['ts_ini'] = df_etype_group.index
