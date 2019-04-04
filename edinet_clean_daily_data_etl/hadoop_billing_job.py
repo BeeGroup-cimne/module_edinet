@@ -118,6 +118,8 @@ class MRJob_clean_billing_data(MRJob):
                     dfs.append(df_temp)
 
                 #join daily df and detect overlapings and gaps
+                if not dfs:
+                    continue
                 global_df = dfs[0]
                 overlappings = []
                 for df_temp in dfs[1:]:

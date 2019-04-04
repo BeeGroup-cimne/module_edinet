@@ -177,8 +177,7 @@ def review_devices(mongo_old, mongo_new):
     data_old = mongo_old['raw_data'].find({})
     devices = data_old.distinct('deviceId')
     data_final = {}
-    for deviceId in devices[0:10]:
-        print(deviceId)
+    for deviceId in devices[0:20]:
         data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
         data_new = mongo_new['raw_data'].find({"device": deviceId})
         data_map = {}
@@ -251,3 +250,4 @@ df = get_raw_data("ES0031406042792001RP0F",mongo_old, mongo_new)
 df = get_raw_data("ES0217010126037241LD",mongo_old, mongo_new)
 df = get_raw_data("oil heating",mongo_old, mongo_new)
 df = get_raw_data("02765274",mongo_old, mongo_new)
+df = get_raw_data("0000171901858155",mongo_old, mongo_new)
