@@ -35,16 +35,16 @@ clean_monthly, clean_hourly, clean_meteo = None, None, None
 while True:
 	if metering_measures.ready() and clean_hourly is None :	
 		try:
-        		from module_edinet.tasks import edinet_clean_hourly_data_etl
-        		params = {
-                		"result_companyId": "1092915978",
-                		"data_companyId": ["1092915978", "3230658933", "5052736858", "7104124143", "8801761586"],
-                		"ts_to": date_to,
-						"ts_from": datetime(2014,1,1)
-        		}
-        		clean_hourly = edinet_clean_hourly_data_etl.delay(params)
+			from module_edinet.tasks import edinet_clean_hourly_data_etl
+			params = {
+            	"result_companyId": "1092915978",
+        		"data_companyId": ["1092915978", "3230658933", "5052736858", "7104124143", "8801761586"],
+        		"ts_to": date_to,
+				"ts_from": datetime(2014,1,1)
+       		}
+			clean_hourly = edinet_clean_hourly_data_etl.delay(params)
 		except Exception as e:
-        		print(e)
+			print(e)
 			exit()
 	if metering_measures.ready() and billing_measures.ready() and clean_monthly is None:	
 		try:

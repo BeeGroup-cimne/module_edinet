@@ -106,7 +106,7 @@ class ComparisonModule(BeeModule2):
                                             '--output-dir', 'hdfs:///' + output_path,
                                             '--file', f.name,
                                             '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
-                                            '--jobconf', 'mapred.reduce.tasks=16',
+                                            '--jobconf', 'mapred.reduce.tasks=15',
                                             '--jobconf', 'mapred.task.timeout=3600000'])
         with mr_job.make_runner() as runner:
             try:
@@ -235,7 +235,7 @@ class ComparisonModule(BeeModule2):
         mr_job = LoadResultsToRESTandHBase(args=['-r', 'hadoop', 'hdfs://' + input_path,
                                                  '--file', f.name,
                                                  '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
-                                                 '--jobconf', 'mapred.reduce.tasks=16',
+                                                 '--jobconf', 'mapred.reduce.tasks=15',
                                                  '--jobconf', 'mapred.task.timeout=3600000'])
         # mr_job = LoadResultsToRESTandHBase(args=['-r', 'hadoop', 'hdfs://'+input_path, '--file', f.name, '--python-archive', path.dirname(lib.__file__), '--output-dir', '/tmp/prova_contracts_plus'])
         with mr_job.make_runner() as runner:

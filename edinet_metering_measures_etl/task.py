@@ -93,7 +93,7 @@ class ETL_mh_hadoop_tertiary(BeeModule2):
         mr_job = Hadoop_ETL(args=['-r', 'hadoop', input, '--file', f.name, '--output-dir',
                                   "{}{}/{}".format(self.config['error_measures'], str(companyId), str_dtnow),
                                   '-c', 'module_edinet/edinet_metering_measures_etl/mrjob.conf', '--jobconf', 'mapred.job.name=edinet_metering_measures_etl'
-            , '--jobconf', 'mapred.reduce.tasks=16', '--jobconf', 'mapred.map.tasks=32'])
+            , '--jobconf', 'mapred.reduce.tasks=15', '--jobconf', 'mapred.map.tasks=32'])
         # mr_job = Hadoop_ETL(args=['-r', 'hadoop', input, '--file', f.name, '--python-archive', path.dirname(lib.__file__)])
         with mr_job.make_runner() as runner:
             try:
