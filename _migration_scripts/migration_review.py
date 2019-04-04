@@ -21,6 +21,8 @@ import sys
 import pandas as pd
 import pyhs2
 from hive_functions import create_hive_table_from_hbase_table
+from pymongo import MongoClient
+
 
 def calculate_frequency(dataset):
     if len(dataset.index) > 1:
@@ -152,3 +154,87 @@ def clean_error(df, table_name):
         #     row = {"m:v": str(v['value'])}
         #     batch.put(key, row)
         # batch.send()
+
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from pymongo import MongoClient
+import plotly.offline as py
+import plotly.graph_objs as go
+from plotly import tools
+
+
+mongo_old= MongoClient("37.59.27.175", 27017)
+mongo_old = mongo_old["edinet_rest_service"]
+mongo_old.authenticate("cimne-edinet","3nm1C--3d1n3t")
+
+mongo_new = MongoClient("217.182.160.171", 27017)
+mongo_new = mongo_new['edinet']
+mongo_new.authenticate("bgruser", "gR0uP_b33u$er")
+
+def review_devices(mongo_old, mongo_new):
+    energy_type_map={"tertiaryElectricityConsumption":"electricityConsumption", "monthlyElectricityConsumption": "electricityConsumption"}
+    data_old = mongo_old['raw_data'].find({})
+    devices = data_old.distinct('deviceId')
+    for deviceId in devices[0:10]:
+        data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
+        data_new = mongo_new['raw_data'].find({"device": deviceId})
+        data_map = {}
+        for i, x in enumerate(data_old):
+            df = pd.DataFrame({"ts": x['timestamps'], "value": x['values']})
+            df.index = pd.to_datetime(df["ts"])
+            energy_type = energy_type_map[x['type']] if x['type'] in energy_type_map else x['type']
+            data_map["{}_{}".format(energy_type,x['companyId'])] = {'old': df.values.sum()}
+        for x in data_new:
+            if x['data_type'] == 'metering':
+                df2 = pd.DataFrame.from_records(x['raw_data'])
+                df2.index = pd.to_datetime(df2.ts)
+                energy_type = energy_type_map[x['energy_type']] if x['energy_type'] in energy_type_map else x['energy_type']
+                data_map["{}_{}".format(energy_type, x['companyId'])] = {'new': df2.values.sum()}
+
+            if x['data_type'] == 'billing':
+                df2 = pd.DataFrame.from_records(x['raw_data'])
+                df2.index = pd.to_datetime(df2.ts_end)
+                energy_type = energy_type_map[x['energy_type']] if x['energy_type'] in energy_type_map else x['energy_type']
+                data_map["{}_{}".format(energy_type, x['companyId'])] = {'new': df2.values.sum()}
+
+    return return_list
+
+
+def get_raw_data(deviceId, mongo_old, mongo_new):
+    data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
+    data_new = mongo_new['raw_data'].find({"device": deviceId})
+    fig = tools.make_subplots(rows=data_old.count(), cols=1, shared_xaxes=False)
+    chart_map = {}
+    for i, x in enumerate(data_old):
+        df = pd.DataFrame({"ts":x['timestamps'], "value": x['values']})
+        df.index = pd.to_datetime(df["ts"])
+        data_1 = go.Scatter(x=df.index.tolist(), y=df.value.tolist(), name=str('old {}'.format(x['companyId'])))
+        fig.append_trace(data_1,i+1,1)
+        chart_map[str(x['companyId'])] = i+1
+
+    print(chart_map)
+    for x in data_new:
+        if x['data_type'] == 'metering':
+            df2 = pd.DataFrame.from_records(x['raw_data'])
+            df2.index = pd.to_datetime(df2.ts)
+            data_2 = go.Scatter(x=df2.index.tolist(), y=df2.value.tolist(), name=str('new {}'.format(x['source'])))
+            fig.append_trace(data_2,chart_map[str(x['source'])],1)
+        if x['data_type'] == 'billing':
+            df2 = pd.DataFrame.from_records(x['raw_data'])
+            df2.index = pd.to_datetime(df2.ts_end)
+            data_2 = go.Scatter(x=df2.index.tolist(), y=df2.value.tolist(), name=str('new {}'.format(x['source'])))
+            fig.append_trace(data_2,chart_map[str(x['source'])],1)
+
+    py.plot(fig, filename='basic-line',)
+
+df = get_raw_data("ES0031405013365002YV0F",mongo_old, mongo_new)
+df = get_raw_data("2ebd708e-255f-58d0-93a8-fad0c260e44f",mongo_old, mongo_new)
+df = get_raw_data("85789d3a-41fc-5ecb-addc-a8190f3d06f3",mongo_old, mongo_new)
+df = get_raw_data("IT001E68702847",mongo_old, mongo_new)
+df = get_raw_data("01611310047317",mongo_old, mongo_new)
+df = get_raw_data("85789d3a-41fc-5ecb-addc-a8190f3d06f3",mongo_old, mongo_new)
+df = get_raw_data("ES0031406042792001RP0F",mongo_old, mongo_new)
+df = get_raw_data("ES0217010126037241LD",mongo_old, mongo_new)
+df = get_raw_data("oil heating",mongo_old, mongo_new)
+df = get_raw_data("02765274",mongo_old, mongo_new)

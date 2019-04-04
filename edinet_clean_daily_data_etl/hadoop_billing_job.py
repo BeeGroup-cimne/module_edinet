@@ -55,14 +55,29 @@ class MRJob_clean_billing_data(MRJob):
         """
         ret = doc.split('\t')
         key = ret[2]
-        value = {
-            "ts_ini": datetime.utcfromtimestamp(float(ret[0])),
-            "ts_end": datetime.utcfromtimestamp(float(ret[1])),
-            "value": ret[3],
-            "energytype": ret[4],
-            "source": ret[5]
-        }
-        yield key, value
+        values = {}
+        try:
+            values["ts_ini"] = datetime.utcfromtimestamp(float(ret[0]))
+        except:
+            values["ts_ini"] = None
+        try:
+            values["ts_end"] = datetime.utcfromtimestamp(float(ret[1]))
+        except:
+            values["ts_end"] = None
+        try:
+            values["value"] = ret[3]
+        except:
+            values["value"] = None
+        try:
+            values["energytype"] = ret[4]
+        except:
+            values["energytype"] = None
+        try:
+            values["source"] = ret[5]
+        except:
+            values["source"] = None
+
+        yield key, values
 
     def reducer(self, key, values):
         """
