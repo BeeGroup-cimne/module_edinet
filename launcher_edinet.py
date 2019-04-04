@@ -4,7 +4,7 @@ date_to = datetime(2019,03,01)
 from time import sleep
 metering_measures, billing_measures, meteo_measures = None, None, None 
 
-type_energy = ['electricityConsumption', 'electricityReadings', 'unknownConsumption', 'unknownReadings', 'waterConsumption', 'tertiaryElectricityConsumption'] 
+type_energy = ['electricityConsumption', 'gasConsumption' 'electricityReadings', 'unknownConsumption', 'unknownReadings', 'waterConsumption', 'monthlyElectricityConsumption']
 
 # UPLOAD DATA FROM MONGO TO HBASE
 try:
