@@ -1,26 +1,34 @@
 #-*- coding: utf-8 -*-
 """
 use migrate_metering to migrate:
-   "unknownConsumption_1092915978"
-   "unknownReadings_1092915978"
-   "electricityConsumption_1092915978"
-   "waterConsumption_1092915978"
+   ."unknownConsumption_1092915978"
+   ."unknownReadings_1092915978"
+   ."electricityConsumption_1092915978"
+   ."waterConsumption_1092915978"
+
    "electricityReadings_1092915978"
    "electricityConsumption_5052736858"
-   "electricityConsumption_3230658933"
    "electricityConsumption_7104124143"
    "electricityConsumption_8801761586"
    "tertiaryElectricityConsumption_8801761586"
+   "tertiaryElectricityConsumption_1092915978"
+   "tertiaryElectricityConsumption_7104124143"
+   "gasConsumption_1092915978"
+   "gasConsumption_5052736858"
+   "gasConsumption_7104124143"
+   "gasConsumption_8801761586"
 
-use migrate_csv_inergy to migrate:
+extracted from new api:
   tertiaryElectricityConsumption_3230658933
+  electricityConsumption_3230658933"
+  gasConsumption_3230658933
 
 use migrate_monthly_gaps to migrate:
   tertiaryElectricityConsumption_1092915978
   tertiaryElectricityConsumption_7104124143
   gasConsumption_1092915978
   gasConsumption_5052736858
-  gasConsumption_3230658933
+
   gasConsumption_7104124143
   gasConsumption_8801761586
 

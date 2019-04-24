@@ -172,82 +172,166 @@ mongo_new = MongoClient("217.182.160.171", 27017)
 mongo_new = mongo_new['edinet']
 mongo_new.authenticate("bgruser", "gR0uP_b33u$er")
 
-def review_devices(mongo_old, mongo_new):
+def review_devices(mongo_old, mongo_new, ini = None, end = None):
     energy_type_map={"tertiaryElectricityConsumption":"electricityConsumption", "monthlyElectricityConsumption": "electricityConsumption"}
     data_old = mongo_old['raw_data'].find({})
     devices = data_old.distinct('deviceId')
     data_final = {}
-    for deviceId in devices[0:20]:
-        data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
-        data_new = mongo_new['raw_data'].find({"device": deviceId})
-        data_map = {}
-        for i, x in enumerate(data_old):
-            df = pd.DataFrame({"ts": x['timestamps'], "value": x['values']})
-            df.index = pd.to_datetime(df["ts"])
-            energy_type = energy_type_map[x['type']] if x['type'] in energy_type_map else x['type']
-            try:
-                data_map["{}_{}".format(energy_type, x['companyId'])].update({'old': df.value.sum()})
-            except:
-                data_map["{}_{}".format(energy_type,x['companyId'])] = {'old': df.value.sum()}
-        for x in data_new:
-            if x['data_type'] == 'metering':
-                df2 = pd.DataFrame.from_records(x['raw_data'])
-                df2.index = pd.to_datetime(df2.ts)
-                df2.value = pd.to_numeric(df2.value)
-                energy_type = energy_type_map[x['energy_type']] if x['energy_type'] in energy_type_map else x['energy_type']
+    if ini and end:
+        devices = devices[ini:end]
+    elif ini:
+        devices = devices[ini:]
+    elif end:
+        devices = devices[:end]
+    total = len(devices)
+    for number_done, deviceId in enumerate(devices):
+        print("{}/{}".format(number_done,total))
+        try:
+            data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
+            data_new = mongo_new['raw_data'].find({"device": deviceId})
+            data_map = {}
+            for i, x in enumerate(data_old):
+                df = pd.DataFrame({"ts": x['timestamps'], "value": x['values']})
+                df.index = pd.to_datetime(df["ts"])
+                df.value = pd.to_numeric(df.value)
                 try:
-                    data_map["{}_{}".format(energy_type, x['source'])].update({'new': df2.value.sum()})
+                    energy_type = energy_type_map[x['type']] if x['type'] in energy_type_map else x['type']
                 except:
-                    data_map["{}_{}".format(energy_type, x['source'])] = {'new': df2.value.sum()}
-
-            if x['data_type'] == 'billing':
-                df2 = pd.DataFrame.from_records(x['raw_data'])
-                df2.index = pd.to_datetime(df2.ts_end)
-                df2.value = pd.to_numeric(df2.value)
-                energy_type = energy_type_map[x['energy_type']] if x['energy_type'] in energy_type_map else x['energy_type']
+                    energy_type = "erroneous"
                 try:
-                    data_map["{}_{}".format(energy_type, x['source'])].update({'new': df2.value.sum()})
+                    data_map["{}_{}".format(energy_type, x['companyId'])].update({'old': df})
                 except:
-                    data_map["{}_{}".format(energy_type, x['source'])] = {'new': df2.value.sum()}
+                    data_map["{}_{}".format(energy_type,x['companyId'])] = {'old': df}
+            for x in data_new:
+                if x['data_type'] == 'metering':
+                    df2 = pd.DataFrame.from_records(x['raw_data'])
+                    df2.index = pd.to_datetime(df2.ts)
+                    df2.value = pd.to_numeric(df2.value)
+                    energy_type = energy_type_map[x['energy_type']] if x['energy_type'] in energy_type_map else x['energy_type']
+                    try:
+                        data_map["{}_{}".format(energy_type, x['source'])].update({'new': df2})
+                    except:
+                        data_map["{}_{}".format(energy_type, x['source'])] = {'new': df2}
 
+                if x['data_type'] == 'billing':
+                    df2 = pd.DataFrame.from_records(x['raw_data'])
+                    df2.index = pd.to_datetime(df2.ts_end)
+                    df2.value = pd.to_numeric(df2.value)
+                    energy_type = energy_type_map[x['energy_type']] if x['energy_type'] in energy_type_map else x['energy_type']
+                    try:
+                        data_map["{}_{}".format(energy_type, x['source'])].update({'new': df2})
+                    except:
+                        data_map["{}_{}".format(energy_type, x['source'])] = {'new': df2}
+
+        except:
+            data_map = {"erroneous":[]}
         data_final[deviceId] = data_map
-    return data_final
 
-def get_raw_data(deviceId, mongo_old, mongo_new):
+    dataft = []
+    for device in data_final:
+        dft = {}
+        dft['device'] = device
+        for t in data_final[device]:
+            dft['type_e'] = t
+            old = data_final[device][t]['old'] if 'old' in data_final[device][t] else None
+            new = data_final[device][t]['new'] if 'new' in data_final[device][t] else None
+            old_sum = None
+            new_sum = None
+            if new is not None and old is not None:
+                new = new.join(old, how='left', rsuffix='_old')
+                old_sum = new.value.sum()
+                new_sum = new.value_old.sum()
+            elif old is not None:
+                old_sum = old.value.sum()
+            elif new is not None:
+                new_sum = new.value.sum()
+            dft['old'] = old_sum
+            dft['new'] = new_sum
+        dataft.append(dft)
+
+    return pd.DataFrame.from_records(dataft)
+
+df = review_devices(mongo_old, mongo_new)
+
+df.to_csv("migration_data.csv")
+
+df = pd.read_csv("migration_data.csv")
+
+
+#detect fails:
+fail = df[(df.error.isna()) | (df.error > 5) | (df.error < -5)]
+fail = fail[((fail.old.isna()==True) & (fail.new.isna()==False)) | ((fail.old.isna()==False) & (fail.new.isna()==True))]
+
+def plot_raw_data(deviceId, mongo_old, mongo_new):
     data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
     data_new = mongo_new['raw_data'].find({"device": deviceId})
-    fig = tools.make_subplots(rows=data_old.count(), cols=1, shared_xaxes=False)
     chart_map = {}
+    chart_id = 0
     for i, x in enumerate(data_old):
         df = pd.DataFrame({"ts":x['timestamps'], "value": x['values']})
         df.index = pd.to_datetime(df["ts"])
         data_1 = go.Scatter(x=df.index.tolist(), y=df.value.tolist(), name=str('old {}'.format(x['companyId'])))
-        fig.append_trace(data_1,i+1,1)
-        chart_map[str(x['companyId'])] = i+1
-
-    print(chart_map)
+        try:
+            chart = chart_map[str(x['companyId'])]
+            chart['traces'].append(data_1)
+        except:
+            chart_id += 1
+            chart = {"id": chart_id, "traces": [data_1]}
+            chart_map[str(x['companyId'])] = chart
     for x in data_new:
         if x['data_type'] == 'metering':
             df2 = pd.DataFrame.from_records(x['raw_data'])
             df2.index = pd.to_datetime(df2.ts)
             data_2 = go.Scatter(x=df2.index.tolist(), y=df2.value.tolist(), name=str('new {}'.format(x['source'])))
-            fig.append_trace(data_2,chart_map[str(x['source'])],1)
         if x['data_type'] == 'billing':
             df2 = pd.DataFrame.from_records(x['raw_data'])
             df2.index = pd.to_datetime(df2.ts_end)
             data_2 = go.Scatter(x=df2.index.tolist(), y=df2.value.tolist(), name=str('new {}'.format(x['source'])))
-            fig.append_trace(data_2,chart_map[str(x['source'])],1)
+        try:
+            chart = chart_map[str(x['source'])]
+            chart['traces'].append(data_2)
+        except:
+            chart_id += 1
+            chart = {"id": chart_id, "traces": [data_2]}
+            chart_map[str(x['source'])] = chart
 
+    fig = tools.make_subplots(rows=chart_id, cols=1, shared_xaxes=False)
+    for _, v in chart_map.items():
+        for t in v['traces']:
+            fig.append_trace(t, v['id'], 1)
     py.plot(fig, filename='basic-line',)
 
-df = get_raw_data("ES0031405013365002YV0F",mongo_old, mongo_new)
-df = get_raw_data("2ebd708e-255f-58d0-93a8-fad0c260e44f",mongo_old, mongo_new)
-df = get_raw_data("85789d3a-41fc-5ecb-addc-a8190f3d06f3",mongo_old, mongo_new)
-df = get_raw_data("IT001E68702847",mongo_old, mongo_new)
-df = get_raw_data("01611310047317",mongo_old, mongo_new)
-df = get_raw_data("85789d3a-41fc-5ecb-addc-a8190f3d06f3",mongo_old, mongo_new)
-df = get_raw_data("ES0031406042792001RP0F",mongo_old, mongo_new)
-df = get_raw_data("ES0217010126037241LD",mongo_old, mongo_new)
-df = get_raw_data("oil heating",mongo_old, mongo_new)
-df = get_raw_data("02765274",mongo_old, mongo_new)
-df = get_raw_data("0000171901858155",mongo_old, mongo_new)
+plot_raw_data("ES0031405013365002YV0F",mongo_old, mongo_new)
+plot_raw_data("2ebd708e-255f-58d0-93a8-fad0c260e44f",mongo_old, mongo_new)
+plot_raw_data("85789d3a-41fc-5ecb-addc-a8190f3d06f3",mongo_old, mongo_new)
+plot_raw_data("IT001E68702847",mongo_old, mongo_new)
+plot_raw_data("01611310047317",mongo_old, mongo_new)
+plot_raw_data("85789d3a-41fc-5ecb-addc-a8190f3d06f3",mongo_old, mongo_new)
+plot_raw_data("ES0031406042792001RP0F",mongo_old, mongo_new)
+plot_raw_data("ES0217010126037241LD",mongo_old, mongo_new)
+plot_raw_data("oil heating",mongo_old, mongo_new)
+plot_raw_data("02765274",mongo_old, mongo_new)
+plot_raw_data("0000171901858156",mongo_old, mongo_new)
+plot_raw_data("00d3c696-a489-5643-9d20-8b5972a90083",mongo_old, mongo_new)
+#quales
+plot_raw_data("3930ab4e-4035-517b-a809-580177b30076",mongo_old, mongo_new)
+plot_raw_data("259f61a5-7297-5ddb-8ba5-06d4c32f57c6",mongo_old, mongo_new)
+plot_raw_data("ES0031406182894001AS0F",mongo_old, mongo_new)
+plot_raw_data("ES0031406180909001HF0F",mongo_old, mongo_new)
+plot_raw_data("ES0031405620773001JG0F",mongo_old, mongo_new)
+plot_raw_data("ES0345000000012539GG0F",mongo_old, mongo_new)
+plot_raw_data("81ff4d54-ae65-5e44-a809-8fefc84456ac",mongo_old, mongo_new)
+plot_raw_data("e7932304-ef1c-56af-8805-4bae88f658f7",mongo_old, mongo_new)
+plot_raw_data("82c17aae-847c-58f4-a815-24a453134c49",mongo_old, mongo_new)
+
+plot_raw_data("ES0217010150764059DX",mongo_old, mongo_new)
+plot_raw_data("ES0031406111385001XQ",mongo_old, mongo_new)
+
+
+def search_mod_unit(df, mongo_new):
+    for device in df.device:
+        data = mongo_new['modelling_units'].find({"devices.deviceId":device})
+        for m in data:
+            yield m['modellingUnitId']
+
+
