@@ -67,7 +67,6 @@ class Hadoop_ETL(MRJob):
             except Exception as e:
                 print(e)
                 print(doc[element].encode("utf-8"))
-                raise(e)
             #row_key.append(element)
             
         return "~".join(row_key)
