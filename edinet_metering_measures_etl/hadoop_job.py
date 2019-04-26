@@ -63,7 +63,7 @@ class Hadoop_ETL(MRJob):
                 if isinstance(doc[element], str):
                     row_key.append(str(doc[element].encode("utf-8")))
                 else:
-                    row.key.append(str(doc[element]))
+                    row_key.append(str(doc[element]))
             except Exception as e:
                 print(doc['element'])
                 print(e)
