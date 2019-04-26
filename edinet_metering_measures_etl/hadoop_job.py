@@ -61,7 +61,7 @@ class Hadoop_ETL(MRJob):
         for element in self.config['hbase_table']['key']:
             try:
                 if isinstance(doc[element], str):
-                    row_key.append(str(doc[element].encode("utf-8")))
+                    row_key.append("".join([x for x in s if x.isalnum()]))
                 else:
                     row_key.append(str(doc[element]))
             except Exception as e:
