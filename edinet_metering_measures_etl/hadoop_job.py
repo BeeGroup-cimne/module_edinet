@@ -61,12 +61,13 @@ class Hadoop_ETL(MRJob):
         for element in self.config['hbase_table']['key']:
             try:
                 if isinstance(doc[element], str):
-                    row_key.append(doc[element].encode("utf-8"))
+                    row_key.append(doc[element].decode("utf-8"))
                 else:
                     row_key.append(str(doc[element]))
             except Exception as e:
                 print(e)
-                print(doc[element].encode("utf-8"))
+                print(doc[element].decode("utf-8"))
+                raise e
             #row_key.append(element)
             
         return "~".join(row_key)
@@ -132,7 +133,6 @@ class Hadoop_ETL(MRJob):
             # customer not found
             #raise Exception("The deviceId %s dont correspond to any contractId" % doc['deviceId'])
             return
-        print(doc)
         doc = self.datetime_to_timestamp(doc,'timestamp')
         # ROW KEY DEFINITION
         row_key = self.build_row_key(doc)
