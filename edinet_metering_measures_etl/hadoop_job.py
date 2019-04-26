@@ -59,7 +59,15 @@ class Hadoop_ETL(MRJob):
     def build_row_key(self, doc):
         row_key = []
         for element in self.config['hbase_table']['key']:
-            row_key.append(str(doc[element].encode("utf-8")))
+            try:
+                if isinstance(doc[element], str):
+                    row_key.append(str(doc[element].encode("utf-8")))
+                else:
+                    row.key.append(str(doc[element]))
+            except Exception as e:
+                print(doc['element'])
+                print(e)
+                raise(e)
             #row_key.append(element)
             
         return "~".join(row_key)
