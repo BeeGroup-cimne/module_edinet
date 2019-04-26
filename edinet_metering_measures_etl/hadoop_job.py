@@ -60,13 +60,14 @@ class Hadoop_ETL(MRJob):
         row_key = []
         for element in self.config['hbase_table']['key']:
             try:
-                if isinstance(doc[element], str):
-                    row_key.append(doc[element].decode("utf-8"))
+                if isinstance(doc[element], unicode):
+                    row_key.append(doc[element].encode("utf-8"))
                 else:
                     row_key.append(str(doc[element]))
             except Exception as e:
                 print(e)
-                print(doc[element].decode("utf-8"))
+                print(type(doc[element]))
+                print(doc[element].encode("utf-8"))
                 raise e
             #row_key.append(element)
             
