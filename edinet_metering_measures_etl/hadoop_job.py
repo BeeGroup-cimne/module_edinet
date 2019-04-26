@@ -65,7 +65,7 @@ class Hadoop_ETL(MRJob):
                 else:
                     row_key.append(str(doc[element]))
             except Exception as e:
-                print(doc['element'])
+                print(doc[element])
                 print(e)
                 raise(e)
             #row_key.append(element)
