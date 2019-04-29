@@ -139,7 +139,7 @@ class Hadoop_ETL(MRJob):
         row_key = self.build_row_key(doc)
         
         # Key - Value lists from the values dictionary
-        doc_key = ['m:v' if doc['reading']['period']=='INSTANT' else 'm:a']
+        doc_key = ['m:v' if doc['reading']['period']=='INSTANT' else 'm:va']
         doc_val = [self.convert_units_to_kilo(doc['reading']['unit'], doc['value'])]
 
         # ROW VALUE DEFINITION

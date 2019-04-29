@@ -259,9 +259,12 @@ df = pd.read_csv("migration_data.csv")
 
 
 #detect fails:
+df['error'] = (df.old - df.new) / df.old
 fail = df[(df.error.isna()) | (df.error > 5) | (df.error < -5)]
 fail = fail[((fail.old.isna()==True) & (fail.new.isna()==False)) | ((fail.old.isna()==False) & (fail.new.isna()==True))]
-
+fail = fail[fail.type_e.str.contains("1512441458")==False]
+fail = fail[fail.type_e.str.contains("3230658933")==False]
+fail[['device', 'type_e']]
 def plot_raw_data(deviceId, mongo_old, mongo_new):
     data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
     data_new = mongo_new['raw_data'].find({"device": deviceId})
@@ -299,6 +302,7 @@ def plot_raw_data(deviceId, mongo_old, mongo_new):
     for _, v in chart_map.items():
         for t in v['traces']:
             fig.append_trace(t, v['id'], 1)
+    print(chart_map)
     py.plot(fig, filename='basic-line',)
 
 plot_raw_data("ES0031405013365002YV0F",mongo_old, mongo_new)
@@ -326,6 +330,8 @@ plot_raw_data("82c17aae-847c-58f4-a815-24a453134c49",mongo_old, mongo_new)
 
 plot_raw_data("ES0217010150764059DX",mongo_old, mongo_new)
 plot_raw_data("ES0031406111385001XQ",mongo_old, mongo_new)
+
+plot_raw_data("856e2791-a5ea-51e2-936f-acff76a7bef4",mongo_old, mongo_new)
 
 
 def search_mod_unit(df, mongo_new):
