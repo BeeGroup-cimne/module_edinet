@@ -129,6 +129,7 @@ class MRJob_clean_metering_data(MRJob):
                 hour_delta = timedelta(hours=1)
 
                 if df_etype_group.value.isnull().all():  # accumulated
+                    df_etype_group = df_etype_group[['accumulated']]
                     if freq <= hour_delta: # sub-hourly frequency
                         if freq <= timedelta(minutes=30):
                             df_etype_group = df_etype_group.resample("30T").max().interpolate().diff(1, 0).rename(
@@ -137,6 +138,7 @@ class MRJob_clean_metering_data(MRJob):
                             df_etype_group = df_etype_group.resample("H").max().interpolate().diff(1,0).rename(
                                 {"accumulated":"value"})
                 elif df_etype_group.accumulated.isnull().all(): #instant
+                    df_etype_group = df_etype_group[['value']]
                     if freq <= hour_delta:  # sub-hourly frequency
                         if freq <= timedelta(minutes=30):
                             df_etype_group = df_etype_group.resample("30T").sum()

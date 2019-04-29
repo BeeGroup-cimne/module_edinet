@@ -129,6 +129,7 @@ class MRJob_clean_metering_data(MRJob):
                 day_delta = timedelta(days=1)
 
                 if df_etype_group.value.isnull().all():  # accumulated
+                    df_etype_group = df_etype_group[['accumulated']]
                     if freq < day_delta: # sub-daily frequency
                         df_etype_group = df_etype_group.resample("D").max().interpolate().diff(1,0).rename(
                             {"accumulated":"value"})
