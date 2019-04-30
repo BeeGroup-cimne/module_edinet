@@ -1,3 +1,4 @@
+import sys
 from datetime import datetime, timedelta
 
 from mrjob.job import MRJob
@@ -132,11 +133,11 @@ class MRJob_clean_metering_data(MRJob):
                     df_etype_group = df_etype_group[['accumulated']]
                     if freq <= hour_delta: # sub-hourly frequency
                         if freq <= timedelta(minutes=30):
-                            df_etype_group = df_etype_group.resample("30T").max().interpolate().diff(1, 0).rename(
-                                columns={"accumulated": "value"})
+                            df_etype_group = df_etype_group.resample("30T").max().interpolate().diff(1, 0)
+                            df_etype_group = df_etype_group.rename(columns={"accumulated": "value"})
                         else:
-                            df_etype_group = df_etype_group.resample("H").max().interpolate().diff(1,0).rename(
-                                columns={"accumulated":"value"})
+                            df_etype_group = df_etype_group.resample("H").max().interpolate().diff(1, 0)
+                            df_etype_group = df_etype_group.rename(columns={"accumulated": "value"})
                 elif df_etype_group.accumulated.isnull().all(): #instant
                     df_etype_group = df_etype_group[['value']]
                     if freq <= hour_delta:  # sub-hourly frequency
@@ -151,14 +152,17 @@ class MRJob_clean_metering_data(MRJob):
                     }, upsert=True)
                     continue
                 df_etype_group['ts'] = df_etype_group.index
-
-                max_threshold = self.config['max_threshold'][etype] if etype in self.config['max_threshold'] else self.config['max_threshold']['default']
-                max_outlier_bool = dc.detect_max_threshold_outliers(df_etype_group['value'], max_threshold)
-                df_etype_group['value'] = dc.clean_series(df_etype_group['value'], max_outlier_bool)
-                negative_values_bool = dc.detect_min_threshold_outliers(df_etype_group['value'], 0)
-                df_etype_group['value'] = dc.clean_series(df_etype_group['value'], negative_values_bool)
-                znorm_bool = dc.detect_znorm_outliers(df_etype_group['value'], 30, mode="global")
-                df_etype_group['value'] = dc.clean_series(df_etype_group['value'], znorm_bool)
+                try:
+                    max_threshold = self.config['max_threshold'][etype] if etype in self.config['max_threshold'] else self.config['max_threshold']['default']
+                    max_outlier_bool = dc.detect_max_threshold_outliers(df_etype_group['value'], max_threshold)
+                    df_etype_group['value'] = dc.clean_series(df_etype_group['value'], max_outlier_bool)
+                    negative_values_bool = dc.detect_min_threshold_outliers(df_etype_group['value'], 0)
+                    df_etype_group['value'] = dc.clean_series(df_etype_group['value'], negative_values_bool)
+                    znorm_bool = dc.detect_znorm_outliers(df_etype_group['value'], 30, mode="global")
+                    df_etype_group['value'] = dc.clean_series(df_etype_group['value'], znorm_bool)
+                except Exception as e:
+                    sys.stderr.write(df_etype_group)
+                    raise e
 
                 max_outliers = list(df_etype_group[max_outlier_bool].index)
                 negative_outliers = list(df_etype_group[negative_values_bool].index)
