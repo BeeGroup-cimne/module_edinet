@@ -149,8 +149,9 @@ for device, df_data in df.groupby("device"):
         batch.send()
     else: #sub daily data or accumulated -> treated as meetering
         if freq > day_delta:
-            table_name = "monthly{}{}".format(table_name[0].upper(),table_name[1:])
-        new_table_name = "edinet_metering_{}".format(table_name)
+            table_name1 = "monthly{}{}".format(table_name[0].upper(),table_name[1:])
+        table_name1 = table_name
+        new_table_name = "edinet_metering_{}".format(table_name1)
         print("writhing to {}".format(new_table_name))
         try:
             hbase.create_table(new_table_name, {'m': dict()})
