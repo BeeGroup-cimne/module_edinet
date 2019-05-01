@@ -264,7 +264,13 @@ fail = df[(df.error.isna()) | (df.error > 5) | (df.error < -5)]
 fail = fail[((fail.old.isna()==True) & (fail.new.isna()==False)) | ((fail.old.isna()==False) & (fail.new.isna()==True))]
 fail = fail[fail.type_e.str.contains("1512441458")==False]
 fail = fail[fail.type_e.str.contains("3230658933")==False]
-fail[['device', 'type_e']]
+fail.type_e.unique()
+fail[fail.type_e=="electricityConsumption_8801761586"]
+fail[fail.type_e=="gasConsumption_8801761586"]
+fail[fail.type_e=="gasConsumption_1092915978"]
+fail[fail.type_e=="electricityConsumption_1092915978"]
+
+
 def plot_raw_data(deviceId, mongo_old, mongo_new):
     data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
     data_new = mongo_new['raw_data'].find({"device": deviceId})
@@ -305,33 +311,15 @@ def plot_raw_data(deviceId, mongo_old, mongo_new):
     print(chart_map)
     py.plot(fig, filename='basic-line',)
 
-plot_raw_data("ES0031405013365002YV0F",mongo_old, mongo_new)
-plot_raw_data("2ebd708e-255f-58d0-93a8-fad0c260e44f",mongo_old, mongo_new)
-plot_raw_data("85789d3a-41fc-5ecb-addc-a8190f3d06f3",mongo_old, mongo_new)
-plot_raw_data("IT001E68702847",mongo_old, mongo_new)
-plot_raw_data("01611310047317",mongo_old, mongo_new)
-plot_raw_data("85789d3a-41fc-5ecb-addc-a8190f3d06f3",mongo_old, mongo_new)
-plot_raw_data("ES0031406042792001RP0F",mongo_old, mongo_new)
-plot_raw_data("ES0217010126037241LD",mongo_old, mongo_new)
-plot_raw_data("oil heating",mongo_old, mongo_new)
-plot_raw_data("02765274",mongo_old, mongo_new)
-plot_raw_data("0000171901858156",mongo_old, mongo_new)
-plot_raw_data("00d3c696-a489-5643-9d20-8b5972a90083",mongo_old, mongo_new)
-#quales
-plot_raw_data("3930ab4e-4035-517b-a809-580177b30076",mongo_old, mongo_new)
-plot_raw_data("259f61a5-7297-5ddb-8ba5-06d4c32f57c6",mongo_old, mongo_new)
-plot_raw_data("ES0031406182894001AS0F",mongo_old, mongo_new)
-plot_raw_data("ES0031406180909001HF0F",mongo_old, mongo_new)
-plot_raw_data("ES0031405620773001JG0F",mongo_old, mongo_new)
-plot_raw_data("ES0345000000012539GG0F",mongo_old, mongo_new)
-plot_raw_data("81ff4d54-ae65-5e44-a809-8fefc84456ac",mongo_old, mongo_new)
-plot_raw_data("e7932304-ef1c-56af-8805-4bae88f658f7",mongo_old, mongo_new)
-plot_raw_data("82c17aae-847c-58f4-a815-24a453134c49",mongo_old, mongo_new)
+#8801761586 old i dades rares
+plot_raw_data("ES0031405055867005FK0F",mongo_old, mongo_new)
+plot_raw_data("ES0217010145711124NZ",mongo_old, mongo_new)
 
+#electricity_1092915978
+f = fail[fail.type_e=="electricityConsumption_1092915978"]
+for d in f.iterrows():
+    plot_raw_data(d[1].device,mongo_old, mongo_new)
 plot_raw_data("ES0217010150764059DX",mongo_old, mongo_new)
-plot_raw_data("ES0031406111385001XQ",mongo_old, mongo_new)
-
-plot_raw_data("856e2791-a5ea-51e2-936f-acff76a7bef4",mongo_old, mongo_new)
 
 
 def search_mod_unit(df, mongo_new):

@@ -64,7 +64,7 @@ hive = pyhs2.connect(host=config['hive']['host'],
 
 
 old_keys = [["bucket","bigint"], ["ts_end","bigint"], ["deviceId","string"]]
-columns = [["value", "float", "m:v"]]
+columns = [["value", "float", "m:v"],["accumulated", "float", "m:va"]]
 cur = hive.cursor()
 
 old_table_hive = create_hive_table_from_hbase_table(cur, table_name, table_name, old_keys, columns, "migration000001")
@@ -77,9 +77,9 @@ while cur.hasMoreRows:
         if not ret_val:
             print("returned None")
             continue
-        key, value = ret_val
+        key, value, accumulated = ret_val
         key = json.loads(key)
-        data.append({"device": key['deviceid'], "ts_end": datetime.utcfromtimestamp(float(key['ts_end'])), "value": value})
+        data.append({"device": key['deviceid'], "ts_end": datetime.utcfromtimestamp(float(key['ts_end'])), "value": value, "accumulated": accumulated})
     except Exception as e:
         print("key: {}".format(key))
         print("value: {}".format(value))
@@ -101,7 +101,7 @@ for device, df_data in df.groupby("device"):
         freq = timedelta(days=2)
 
     day_delta = timedelta(days=1)
-    if freq > day_delta: #super daily data -> treated as billing
+    if freq > day_delta and df_data.accumulated.isnull().all(): #treated as billing
         new_table_name = "edinet_billing_{}".format(table_name)
         try:
             hbase.create_table(new_table_name, {'m': dict()})
@@ -147,19 +147,21 @@ for device, df_data in df.groupby("device"):
             row = {"m:v": str(v['value'])}
             batch.put(key, row)
         batch.send()
-    else: #sub daily data -> treated as meetering
+    else: #sub daily data or accumulated -> treated as meetering
+        if freq > day_delta:
+            table_name = "monthly{}{}".format(table_name[0].upper(),table_name[1:])
         new_table_name = "edinet_metering_{}".format(table_name)
         print("writhing to {}".format(new_table_name))
         try:
             hbase.create_table(new_table_name, {'m': dict()})
         except:
             pass
-        df_end = df_data[['ts_end', 'value']]
+        df_end = df_data[['ts_end', 'value', 'accumulated']]
         hbase_table = hbase.table(new_table_name)
         batch = hbase_table.batch()
         for _, v in df_end.iterrows():
             key = "{}~{}".format(datetime_to_timestamp(v['ts_end']), device)
-            row = {"m:v": str(v['value'])}
+            row = {"m:v": str(v['value']), "m:va": str(v['accumulated'])}
             batch.put(key, row)
         batch.send()
 
