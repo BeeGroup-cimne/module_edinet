@@ -1,10 +1,13 @@
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 date_to = datetime(2019,03,01)
+date_from_hourly = date_to - relativedelta(years=2)
+date_from_monthly = date_to - relativedelta(years=4)
 # tasks definitions
 from time import sleep
 metering_measures, billing_measures, meteo_measures = None, None, None 
 
-type_energy = ['electricityConsumption', 'gasConsumption' 'electricityReadings', 'unknownConsumption', 'unknownReadings', 'waterConsumption', 'monthlyElectricityConsumption']
+#type_energy = ['electricityConsumption', 'gasConsumption' 'electricityReadings', 'unknownConsumption', 'unknownReadings', 'waterConsumption', 'monthlyElectricityConsumption']
 
 # UPLOAD DATA FROM MONGO TO HBASE
 try:
@@ -40,7 +43,7 @@ while True:
             	"result_companyId": "1092915978",
         		"data_companyId": ["1092915978", "3230658933", "5052736858", "7104124143", "8801761586"],
         		"ts_to": date_to,
-				"ts_from": datetime(2014,1,1)
+				"ts_from": date_from_hourly
        		}
 			clean_hourly = edinet_clean_hourly_data_etl.delay(params)
 		except Exception as e:
@@ -53,7 +56,7 @@ while True:
 				"result_companyId": "1092915978",
                 		"data_companyId": ["1092915978", "3230658933", "5052736858", "7104124143", "8801761586"],
                 		"ts_to": date_to,
-						"ts_from": datetime(2014, 1, 1)
+						"ts_from": date_from_monthly
         		}
 			clean_monthly = edinet_clean_daily_data_etl.delay(params)
 		except Exception as e:
@@ -62,10 +65,11 @@ while True:
 	if meteo_measures.ready() and clean_meteo is None:
 		try:
 			from module_edinet.tasks import edinet_clean_meteo_data_etl
+			meteo_date = max(date_from_hourly,date_from_monthly)
 			params = {
 				"result_companyId": "1092915978",
 				"ts_to": date_to,
-				"ts_from": datetime(2014, 1, 1)
+				"ts_from": meteo_date
 			}
 			clean_meteo = edinet_clean_meteo_data_etl.delay(params)
 		except Exception as e:
