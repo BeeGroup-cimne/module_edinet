@@ -173,7 +173,9 @@ mongo_new = mongo_new['edinet']
 mongo_new.authenticate("bgruser", "gR0uP_b33u$er")
 
 def review_devices(mongo_old, mongo_new, ini = None, end = None):
-    energy_type_map={"tertiaryElectricityConsumption":"electricityConsumption", "monthlyElectricityConsumption": "electricityConsumption"}
+    energy_type_map={"tertiaryElectricityConsumption":"electricityConsumption",
+                     "monthlyElectricityConsumption": "electricityConsumption",
+                     "monthlyGasConsumption": "gasConsumption"}
     data_old = mongo_old['raw_data'].find({})
     devices = data_old.distinct('deviceId')
     data_final = {}
@@ -207,6 +209,7 @@ def review_devices(mongo_old, mongo_new, ini = None, end = None):
                     df2 = pd.DataFrame.from_records(x['raw_data'])
                     df2.index = pd.to_datetime(df2.ts)
                     df2.value = pd.to_numeric(df2.value)
+                    df2.accumulated = pd.to_numeric(df2.accumulated)
                     energy_type = energy_type_map[x['energy_type']] if x['energy_type'] in energy_type_map else x['energy_type']
                     try:
                         data_map["{}_{}".format(energy_type, x['source'])].update({'new': df2})
@@ -217,6 +220,7 @@ def review_devices(mongo_old, mongo_new, ini = None, end = None):
                     df2 = pd.DataFrame.from_records(x['raw_data'])
                     df2.index = pd.to_datetime(df2.ts_end)
                     df2.value = pd.to_numeric(df2.value)
+                    df2['accumulated'] = None
                     energy_type = energy_type_map[x['energy_type']] if x['energy_type'] in energy_type_map else x['energy_type']
                     try:
                         data_map["{}_{}".format(energy_type, x['source'])].update({'new': df2})
@@ -226,7 +230,6 @@ def review_devices(mongo_old, mongo_new, ini = None, end = None):
         except:
             data_map = {"erroneous":[]}
         data_final[deviceId] = data_map
-
     dataft = []
     for device in data_final:
         dft = {}
@@ -239,12 +242,19 @@ def review_devices(mongo_old, mongo_new, ini = None, end = None):
             new_sum = None
             if new is not None and old is not None:
                 new = new.join(old, how='left', rsuffix='_old')
-                old_sum = new.value.sum()
-                new_sum = new.value_old.sum()
+                old_sum = new.value_old.sum()
+                if new.accumulated.isna().all():
+                    new_sum = new.value.sum()
+                else:
+                    new_sum = new.accumulated.sum()
+
             elif old is not None:
                 old_sum = old.value.sum()
             elif new is not None:
-                new_sum = new.value.sum()
+                if new.accumulated.isna().all():
+                    new_sum = new.value.sum()
+                else:
+                    new_sum = new.accumulated.sum()
             dft['old'] = old_sum
             dft['new'] = new_sum
         dataft.append(dft)
@@ -252,6 +262,7 @@ def review_devices(mongo_old, mongo_new, ini = None, end = None):
     return pd.DataFrame.from_records(dataft)
 
 df = review_devices(mongo_old, mongo_new)
+#df = review_devices(mongo_old, mongo_new, ini=0, end=10)
 
 df.to_csv("migration_data.csv")
 
@@ -270,6 +281,8 @@ fail[fail.type_e=="gasConsumption_8801761586"]
 fail[fail.type_e=="gasConsumption_1092915978"]
 fail[fail.type_e=="electricityConsumption_1092915978"]
 
+fail[fail.type_e=="unknownConsumption_1092915978"]
+fail[fail.type_e=="monthlyGasConsumption_1092915978"]
 
 def plot_raw_data(deviceId, mongo_old, mongo_new):
     data_old = mongo_old['raw_data'].find({"deviceId": deviceId})
@@ -291,7 +304,10 @@ def plot_raw_data(deviceId, mongo_old, mongo_new):
         if x['data_type'] == 'metering':
             df2 = pd.DataFrame.from_records(x['raw_data'])
             df2.index = pd.to_datetime(df2.ts)
-            data_2 = go.Scatter(x=df2.index.tolist(), y=df2.value.tolist(), name=str('new {}'.format(x['source'])))
+            if df2.accumulated.isna().all():
+                data_2 = go.Scatter(x=df2.index.tolist(), y=df2.value.tolist(), name=str('new {}'.format(x['source'])))
+            else:
+                data_2 = go.Scatter(x=df2.index.tolist(), y=df2.accumulated.tolist(), name=str('new {}'.format(x['source'])))
         if x['data_type'] == 'billing':
             df2 = pd.DataFrame.from_records(x['raw_data'])
             df2.index = pd.to_datetime(df2.ts_end)
@@ -312,11 +328,14 @@ def plot_raw_data(deviceId, mongo_old, mongo_new):
     py.plot(fig, filename='basic-line',)
 
 #8801761586 old i dades rares
-plot_raw_data("ES0031405055867005FK0F",mongo_old, mongo_new)
+plot_raw_data("ES0031406041682002VN0F",mongo_old, mongo_new)
+
 plot_raw_data("ES0217010145711124NZ",mongo_old, mongo_new)
+plot_raw_data("ES0230010293202058NY",mongo_old, mongo_new)
+plot_raw_data("22e8b85a-eb13-5fbd-8201-97ea5fb424f1",mongo_old, mongo_new)
 
 #electricity_1092915978
-f = fail[fail.type_e=="electricityConsumption_1092915978"]
+f = fail
 for d in f.iterrows():
     plot_raw_data(d[1].device,mongo_old, mongo_new)
 plot_raw_data("ES0217010150764059DX",mongo_old, mongo_new)
