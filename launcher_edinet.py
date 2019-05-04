@@ -65,7 +65,7 @@ while True:
 	if meteo_measures.ready() and clean_meteo is None:
 		try:
 			from module_edinet.tasks import edinet_clean_meteo_data_etl
-			meteo_date = max(date_from_hourly,date_from_monthly)
+			meteo_date = min(date_from_hourly,date_from_monthly)
 			params = {
 				"result_companyId": "1092915978",
 				"ts_to": date_to,
