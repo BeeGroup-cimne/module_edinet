@@ -94,7 +94,7 @@ class BaselineModule(BeeModule2):
         collection = self.config['mongodb']['modelling_units_collection']
 
         self.logger.debug('Querying for modelling units in MongoDB')
-        cursor = self.mongo[collection].find({mongo_query})
+        cursor = self.mongo[collection].find(mongo_query)
 
         device_key = {}
         stations = {}
