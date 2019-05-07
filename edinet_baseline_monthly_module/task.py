@@ -73,6 +73,7 @@ class BaselineModule(BeeModule2):
             ts_to = params['ts_to']
             ts_from = params['ts_from'] if 'ts_from' in params else date_n_month(ts_to, -24)
             energyTypeList = params['type'] if 'type' in params else []
+            mongo_query = params['query'] if 'query' in params else {}
         except KeyError as e:
             raise Exception('Not enough parameters provided to module: {}'.format(e))
 
@@ -93,7 +94,7 @@ class BaselineModule(BeeModule2):
         collection = self.config['mongodb']['modelling_units_collection']
 
         self.logger.debug('Querying for modelling units in MongoDB')
-        cursor = self.mongo[collection].find({})
+        cursor = self.mongo[collection].find({mongo_query})
 
         device_key = {}
         stations = {}
