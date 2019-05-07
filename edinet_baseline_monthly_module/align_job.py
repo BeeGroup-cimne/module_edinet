@@ -89,11 +89,8 @@ class MRJob_align(MRJob):
             multiplier[i['deviceId']] = i['multiplier']
 
         # create dataframe from values list
-        v = []
-        for i in values:
-            v.append(i)
-        df = pd.DataFrame.from_records(v, index='date', columns=['value','temperature','date','deviceid','energyType'])
-        df = df[~df.index.duplicated(keep='last')]
+        df = pd.DataFrame.from_records(values, index='date', columns=['value','temperature','date','deviceid','energyType'])
+
         df = df.sort_index()
 
         grouped = df.groupby('deviceid')
@@ -101,6 +98,7 @@ class MRJob_align(MRJob):
         df_new_daily = None
         df_weather = None
         for device, data in grouped:
+            data = data[~data.index.duplicated(keep='last')]
             if device not in multiplier.keys():
                 continue
             if df_new_daily is None:
@@ -109,7 +107,7 @@ class MRJob_align(MRJob):
                 df_new_daily += data[['value']] * multiplier[device]
             df_weather = data[['temperature']]
 
-
+        df_new_daily = df_new_daily.dropna()
 
         monthly_baseline = monthly_calc(modelling_unit, df_weather, self.company, multipliers, df_new_daily)
 

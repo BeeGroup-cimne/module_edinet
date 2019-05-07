@@ -188,5 +188,21 @@ params = {
 }
 t = BaselineModule()
 t.run(params) 
+
+from module_edinet.edinet_baseline_monthly_module.task import BaselineModule
+from datetime import datetime
+params = {
+    'result_companyId': 1092915978,
+    'type': [],
+    'ts_to': datetime(2019, 4, 1, 23, 59, 59),
+    'query': {"modellingUnitId":"edinetId89-electricityConsumption"}
+}
+t = BaselineModule()
+t.run(params)
+
+    
     """
+
+
+
 
