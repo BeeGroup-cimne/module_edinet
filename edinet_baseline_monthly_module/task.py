@@ -183,8 +183,7 @@ from module_edinet.edinet_baseline_monthly_module.task import BaselineModule
 from datetime import datetime
 params = {
    'result_companyId': 1092915978,
-   'type': 'electricityConsumption',
-   'ts_to': datetime(2018, 6, 1, 23, 59, 59)
+    'ts_to': datetime(2019, 5, 1, 23, 59, 59)
 }
 t = BaselineModule()
 t.run(params) 
