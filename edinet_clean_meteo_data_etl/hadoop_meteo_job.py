@@ -96,48 +96,48 @@ class MRJob_clean_meteo_data(MRJob):
         df = df.sort_index()
         df['ts'] = df.index
         # save meteo information in raw_data
-        self.mongo['meteo_raw_data'].update({"stationId": key}, { "$set" : {
-            "stationId": key, "companyId": self.companyId,
-            "raw_data":df[columns].to_dict('records')
-            }
-        }, upsert=True)
+        # self.mongo['meteo_raw_data'].update({"stationId": key}, { "$set" : {
+        #     "stationId": key, "companyId": self.companyId,
+        #     "raw_data":df[columns].to_dict('records')
+        #     }
+        # }, upsert=True)
 
         self.mongo['meteo_raw_data'].update(
             {"stationId": key},
             {"$unset": {"errors": 1}},
             upsert=True)
         # check if duplicated meteo data
-        # duplicated_index = df.index.duplicated(keep='last')
-        # duplicated_values = df[duplicated_index].index.values.tolist()
-        # df = df[~duplicated_index]
-        #
-        # max_threshold = self.config['threshold']['max']
-        # max_outlier_bool = dc.detect_max_threshold_outliers(df['temperature'], max_threshold)
-        # df['temperature'] = dc.clean_series(df['temperature'], max_outlier_bool)
-        #
-        # min_threshold = self.config['threshold']['min']
-        # min_threshold_bool = dc.detect_min_threshold_outliers(df['temperature'], min_threshold)
-        # df['temperature'] = dc.clean_series(df['temperature'], min_threshold_bool)
-        #
-        # znorm_bool = dc.detect_znorm_outliers(df['temperature'], 30, mode="global")
-        # df['temperature'] = dc.clean_series(df['temperature'], znorm_bool)
-        #
-        # max_outliers = list(df[max_outlier_bool].index)
-        # negative_outliers = list(df[min_threshold_bool].index)
-        # znorm_outliers = list(df[znorm_bool].index)
-        # missing_values = list(df[df.temperature.isnull()].index)
-        #
-        # self.mongo['meteo_raw_data'].update({"stationId": key},
-        #                                 {"$set":
-        #                                    {
-        #                                     "clean_data_meteo": df[columns].to_dict('records'),
-        #                                     "negative_values": negative_outliers,
-        #                                     "znorm_outliers_hourly": znorm_outliers,
-        #                                     "max_outliers_hourly": max_outliers,
-        #                                     "gaps": missing_values,
-        #                                     "duplicated_values": duplicated_values
-        #                                    }
-        #                                 }, upsert=True)
+        duplicated_index = df.index.duplicated(keep='last')
+        duplicated_values = df[duplicated_index].index.values.tolist()
+        df = df[~duplicated_index]
+
+        max_threshold = self.config['threshold']['max']
+        max_outlier_bool = dc.detect_max_threshold_outliers(df['temperature'], max_threshold)
+        df['temperature'] = dc.clean_series(df['temperature'], max_outlier_bool)
+
+        min_threshold = self.config['threshold']['min']
+        min_threshold_bool = dc.detect_min_threshold_outliers(df['temperature'], min_threshold)
+        df['temperature'] = dc.clean_series(df['temperature'], min_threshold_bool)
+
+        znorm_bool = dc.detect_znorm_outliers(df['temperature'], 30, mode="global")
+        df['temperature'] = dc.clean_series(df['temperature'], znorm_bool)
+
+        max_outliers = list(df[max_outlier_bool].index)
+        negative_outliers = list(df[min_threshold_bool].index)
+        znorm_outliers = list(df[znorm_bool].index)
+        missing_values = list(df[df.temperature.isnull()].index)
+
+        self.mongo['meteo_raw_data'].update({"stationId": key},
+                                        {"$set":
+                                           {
+                                            "clean_data_meteo": df[columns].to_dict('records'),
+                                            "negative_values": negative_outliers,
+                                            "znorm_outliers_hourly": znorm_outliers,
+                                            "max_outliers_hourly": max_outliers,
+                                            "gaps": missing_values,
+                                            "duplicated_values": duplicated_values
+                                           }
+                                        }, upsert=True)
 
         all = [x[0] for x in self.config['output']['sql_sentence_select']]
         for row in df.iterrows():
