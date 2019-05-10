@@ -98,7 +98,12 @@ class Hadoop_ETL(MRJob):
         # Key - Value lists from the values dictionary
         cf = self.config['hbase_table']['cf'][0]
         doc_key = ["{}:{}".format(cf['name'],f) for f in cf['fields']]
-        doc_val = [doc[f] for f in cf['fields']]
+        doc_val = []
+        for f in cf['fields']:
+            try:
+                doc_val.append(doc[f])
+            except:
+                doc_val.append(np.NaN)
 
         # ROW VALUE DEFINITION
         row = {}
