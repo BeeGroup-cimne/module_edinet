@@ -57,23 +57,26 @@ class MRJob_clean_meteo_data(MRJob):
         emits ts, and consumption as values
         """
         ret = doc.split('\t')
-        columns = [x[0] for x in self.config['output']['sql_sentence_select']]
-        key = ret[1]
+        columns = [x[0] for x in self.config['output']['fields']]
         value = {}
-        for i, c in enumerate(columns):
+        for i, c in enumerate(self.config['output']['fields']):
             if i == 0:
+                #timestamp is at position 0
                 try:
-                    value['ts'] = datetime.utcfromtimestamp(float(ret[0]))
+                    value[c[0]] = datetime.utcfromtimestamp(float(ret[0]))
                 except:
                     return
-            elif i == 1:
-                pass
             else:
-                try:
-                    value[c] = float(ret[i])
-                except:
-                    value[c] = np.NaN
+                if c[1] == 'float':
+                    try:
+                        value[c[0]] = float(ret[i])
+                    except:
+                        value[c[0]] = np.NaN
+                else:
+                    value[c[0]] = ret[i]
 
+
+        key = value.pop('stationId')
         yield key, value
 
     def reducer(self, key, values):
@@ -88,8 +91,7 @@ class MRJob_clean_meteo_data(MRJob):
         :return:
         """
         #create dataframe with the values:
-        columns =[x[0] for x in self.config['output']['sql_sentence_select'] if x[0] != "stationId"]
-        df = pd.DataFrame.from_records(values, columns=columns)
+        df = pd.DataFrame.from_records(values)
         # group it by source and energyType
 
         df = df.set_index('ts')
@@ -130,7 +132,7 @@ class MRJob_clean_meteo_data(MRJob):
         self.mongo['meteo_raw_data'].update({"stationId": key},
                                         {"$set":
                                            {
-                                            "clean_data_meteo": df[columns].to_dict('records'),
+                                            "clean_data_meteo": df.to_dict('records'),
                                             "negative_values": negative_outliers,
                                             "znorm_outliers_hourly": znorm_outliers,
                                             "max_outliers_hourly": max_outliers,
@@ -139,13 +141,13 @@ class MRJob_clean_meteo_data(MRJob):
                                            }
                                         }, upsert=True)
 
-        all = [x[0] for x in self.config['output']['sql_sentence_select']]
+        all = [x[0] for x in self.config['output']['fields']]
         for row in df.iterrows():
             return_list = []
             for f in all:
                 if f == "ts":
                     return_list.append(str(row[1]['ts'].timestamp()))
-                if f == "stationId":
+                elif f == "stationId":
                     return_list.append(key)
                 else:
                     return_list.append(str(row[1][f]))
