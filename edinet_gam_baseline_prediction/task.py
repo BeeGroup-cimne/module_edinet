@@ -105,7 +105,7 @@ class ModelPrediction(BeeModule3):
         stations = {}
         solar_station = {}
         self.logger.debug('Querying for modelling unit info in MongoDB')
-        cursor = self.mongo[modelling_units_collection].find({"stationId":"X6"}).limit(5)
+        cursor = self.mongo[modelling_units_collection].find({})
         for item in cursor :
 
             if len(item['devices']) > 0:  # to avoid empty list of devices

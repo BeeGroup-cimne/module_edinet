@@ -6,7 +6,9 @@ config.json
 launcher.py
 mrjob.conf
 general_variables.sh
+module_variables.sh
 .DS_Store
 .idea/
 !.modules_config_files/launcher.py
 !.modules_config_files/mrjob.conf
+!_module_template/module_variables.sh
