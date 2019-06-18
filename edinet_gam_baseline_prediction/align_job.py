@@ -48,7 +48,7 @@ class MRJob_align(MRJob):
         fn = glob.glob('*.json')
         self.config = load(open(fn[0]))
         r_file = NamedTemporaryFile(delete=False, suffix='.R')
-        with open('model_functions/gam_functions.R', 'r') as rcode:
+        with open('_model_functions/gam_functions.R', 'r') as rcode:
             r_file.write(bytes(rcode.read(), encoding="utf8"))
         set_r_environment(r_file.name)
         os.unlink(r_file.name)

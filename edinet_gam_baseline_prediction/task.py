@@ -46,7 +46,7 @@ class ModelPrediction(BeeModule3):
         mr_job = MRJob_align(
             args=['-r', 'hadoop', 'hdfs://{}'.format(input), '--file', f.name, '-c',
                   'module_edinet/edinet_gam_baseline_prediction/mrjob.conf',
-                  '--dir', 'module_edinet/model_functions#model_functions', '--jobconf',
+                  '--dir', 'module_edinet/_model_functions#_model_functions', '--jobconf',
                   'mapreduce.job.name=edinet_baseline_gam_prediction', '--jobconf', 'mapreduce.job.maps=5',
                   '--jobconf', 'mapreduce.job.reduces=16'])
         # mr_job = MRJob_align(args=['-r', 'hadoop', 'hdfs://'+input, '--file', f.name, '--output-dir', '/tmp/prova_dani', '--python-archive', path.dirname(lib.__file__)])  # debugger

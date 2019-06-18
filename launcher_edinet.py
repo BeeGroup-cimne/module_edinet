@@ -123,3 +123,13 @@ while True:
 		break
 	sleep(1)
 
+try:
+	from module_edinet.tasks import edinet_gam_baseline_training
+	params = {
+				"result_companyId": "1092915978",
+				"ts_to": date_to
+		 }
+	baseline_hour = edinet_gam_baseline_training.delay(params)
+except Exception as e:
+	print(e)
+	exit()
