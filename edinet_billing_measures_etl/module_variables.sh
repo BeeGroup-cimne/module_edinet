@@ -7,6 +7,17 @@ task_exec_file=task.py
 # module name
 task_name=edinet_billing_measures_etl
 
+#python to use
+python_v=/usr/bin/python2.7
+
+#pythonpath to add (list)
+python_path=(
+)
+
+# export variables
+to_export=(
+)
+
 # celery queue to add this task
 queue=etl
 

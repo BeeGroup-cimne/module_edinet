@@ -10,9 +10,15 @@ task_name=edinet_gam_baseline_training
 #python to use
 python_v=/usr/local/Cellar/python/3.7.1/bin/python3.7
 
-#pythonpath to add
+#pythonpath to add (list)
+python_path=(
+    /Volumes/DataDisk/docker/module_edinet/model_functions
+)
 
-python_path=/Volumes/DataDisk/docker/module_edinet/model_functions
+# export variables
+to_export=(
+    R_HOME=/Library/Frameworks/R.framework/Resources
+)
 
 # celery queue to add this task
 queue=modules
