@@ -8,16 +8,16 @@ task_exec_file=task.py
 task_name=edinet_gam_baseline_prediction
 
 #python to use
-python_v=/usr/local/Cellar/python/3.7.1/bin/python3.7
+python_v=/usr/bin/python3.5
 
 #pythonpath to add (list)
 python_path=(
-    /Volumes/DataDisk/docker/module_edinet/model_functions
+    /opt/BeeDataBackend/module_edinet/model_functions
 )
 
 # export variables
 to_export=(
-    R_HOME=/Library/Frameworks/R.framework/Resources
+    R_HOME=/usr/lib/R
 )
 
 # celery queue to add this task
