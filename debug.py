@@ -9,15 +9,72 @@ from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import bee_data_cleaning as dc
-host = '217.182.160.171'
-db = 'edinet'
-username = "bgruser"
-password = "gR0uP_b33u$er"
+host = '*********'
+db = '****'
+username = "*****"
+password = "******"
 
-host = '37.59.27.175'
-db = 'edinet_rest_service'
-username = "cimne-edinet"
-password = "3nm1C--3d1n3t"
+host = '********'
+db = '*********'
+username = "********"
+password = "*********"
+
+"""
+# meteo _validation
+import pandas as pd
+import glob
+import pymongo
+import os
+
+
+def validate(name):
+    df = pd.read_csv(name)
+    df_s = len(df)
+    df['test_diff'] = df.temperature.diff()
+    check = df['test_diff'].value_counts()
+    if check.empty:
+        return pd.DataFrame()
+    return (check / df_s).head()
+
+
+def plot(name):
+    df = pd.read_csv(name)
+    plt.figure()
+    plt.plot(df.temperature)
+    plt.show()
+
+
+good = []
+bad = []
+for x in glob.glob("*.csv"):
+
+    val = validate(x)
+    if val.empty == True:
+        bad.append(x)
+        continue
+    if val.iloc[0] >= 0.2:
+        bad.append(x)
+    else:
+        good.append(x)
+
+# eliminar incorrectes
+mongo = MongoClient("****", 27017)
+mongo['edinet'].authenticate(
+    "***",
+    "***"
+)
+for x in bad:
+    id = x.split("_hist_hourly.csv")
+    id = id[0]
+    x1 = mongo['edinet']['weather_stations'].find_one({"stationId": id})
+    if x1:
+        mongo['edinet']['weather_stations'].update_one({"stationId": id}, {"$unset": {"historic_time": "1"}})
+    try:
+        os.remove(x)
+    except Exception as e:
+        print("not removed {}".format(e))
+
+"""
 
 conn = BeeDataConnection(db,host,username,password)
 

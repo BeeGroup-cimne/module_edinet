@@ -97,7 +97,7 @@ class MRJob_align(MRJob):
         df = df.sort_index()
 
         grouped = df.groupby('deviceid')
-        # has to multiply each modelling unit values by multiplier and add them all:
+        # has to multiply each device values by multiplier and add them all:
         df_new_hourly = None
         df_weather = None
         for device, data in grouped:

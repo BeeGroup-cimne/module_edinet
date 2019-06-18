@@ -1,4 +1,5 @@
 *.pyc
+venv3/
 venv/
 config.json
 /tasks.py
