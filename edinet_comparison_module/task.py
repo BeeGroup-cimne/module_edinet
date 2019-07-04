@@ -7,13 +7,13 @@ import json
 from module_edinet.module_python3 import BeeModule3
 from querybuilder import RawQueryBuilder
 from datetime_functions import date_n_month
-from hive_functions import create_hive_module_input_table, create_measures_temp_table_edinet
+from hive_functions import create_hive_module_input_table
 import sys
 
 
 class ComparisonModule(BeeModule3):
     def __init__(self):
-        super(ComparisonModule, self).__init__("edinet_comparisons")
+        super(ComparisonModule, self).__init__("edinet_comparison_module")
         #delete hdfs directory found in config path on finish
 #        self.context.add_clean_hdfs_file(self.config['paths']['all'])
 
@@ -147,14 +147,14 @@ if __name__ == "__main__":
 
 
     """
-from module_edinet.edinet_baseline.task import BaselineModule
+from module_edinet.edinet_comparison_module.task import ComparisonModule
 from datetime import datetime
 params = {
    'companyId': 1092915978,
    'companyId_toJoin': [3230658933],
    'type': 'electricityConsumption',
-   'ts_to': datetime(2016, 12, 31, 23, 59, 59)
+   'ts_to': datetime(2019, 04, 31, 23, 59, 59)
 }
-t = BaselineModule()
+t = ComparisonModule()
 t.run(params) 
     """
