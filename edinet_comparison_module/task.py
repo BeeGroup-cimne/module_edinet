@@ -5,7 +5,7 @@ from tempfile import NamedTemporaryFile
 from bson import json_util
 import json
 from module_edinet.module_python3 import BeeModule3
-from querybuilder import RawQueryBuilder
+from hive_functions.query_builder import RawQueryBuilder
 from datetime_functions import date_n_month
 from hive_functions import create_hive_module_input_table
 import sys
@@ -120,8 +120,8 @@ class ComparisonModule(BeeModule3):
         #add input table to be deleted after execution
  #       self.context.add_clean_hive_tables(input_table)
         self.logger.debug('creating hive query')
-
         qbr = RawQueryBuilder(self.hive)
+
         self.logger.debug("fda")
         total_select_joint = ", ".join(["{}.{}".format(x[2],x[0]) for x in self.config['hive']['final_table_fields']])
         sentence = """
