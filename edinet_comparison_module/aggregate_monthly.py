@@ -15,7 +15,7 @@ class TSVProtocol(object):
         return k_str, v_str
 
     def write(self, key, value):
-        return '%s' % value
+        return "{}".format(value).encode('utf-8')
 
 
 class MRJob_aggregate(MRJob):
@@ -96,9 +96,9 @@ class MRJob_aggregate(MRJob):
         }, upsert=True)
         mongo.close()
 
-        # for ts, row in df_value.iterrows():
+        for ts, row in df_value.iterrows():
         #     yield None, "fafa".encode("utf-8")
-        #     #yield None, "{}\t{}\t{}\t{}".format(modelling_unit, "111111111", "10", energy_type).encode('utf-8')
+             yield None, "{}\t{}\t{}\t{}".format(modelling_unit, ts.timestamp(), row.value, energy_type).encode('utf-8')
 
 if __name__ == '__main__':
     MRJob_aggregate.run()
