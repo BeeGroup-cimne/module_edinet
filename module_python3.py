@@ -134,14 +134,15 @@ class BeeModule3(object):
     def _start_task(self, params):
         self.logger.info('Setting connections')
         self.mongo_client, self.mongo = self._set_mongo()
-        self.logger.info('Setting mongo')
+        self.logger.info('Set mongo')
         self.hive = self._set_hive()
-        self.logger.info('Setting hive')
+        self.logger.info('Set hive')
         self.hdfs = self._set_hdfs()
-        self.logger.info('Setting hdfs')
+        self.logger.info('Set hdfs')
         self.hbase = self._set_hbase()
-        self.logger.info('Setting hbase')
+        self.logger.info('Set hbase')
         self.report.start(params)
+        self.logger.info("Done")
 
     def _finish_task(self):
         self._cleanup_temp_data(recurse=True)
