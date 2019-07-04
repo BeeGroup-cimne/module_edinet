@@ -122,6 +122,7 @@ class ComparisonModule(BeeModule3):
         self.logger.debug('creating hive query')
 
         qbr = RawQueryBuilder(self.hive)
+        self.logger.debug("fda")
         total_select_joint = ", ".join(["{}.{}".format(x[2],x[0]) for x in self.config['hive']['final_table_fields']])
         sentence = """
             INSERT OVERWRITE TABLE {input_table}
