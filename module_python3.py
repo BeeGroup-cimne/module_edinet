@@ -141,7 +141,7 @@ class BeeModule3(object):
         self.logger.info('Set hdfs')
         self.hbase = self._set_hbase()
         self.logger.info('Set hbase')
-        self.loggar.info("FDAFA")
+        self.logger.info("FDAFA")
         self.report.start(params)
         self.logger.info("Done")
 
