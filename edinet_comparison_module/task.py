@@ -149,12 +149,7 @@ if __name__ == "__main__":
     """
 from module_edinet.edinet_comparison_module.task import ComparisonModule
 from datetime import datetime
-params = {
-   'companyId': 1092915978,
-   'companyId_toJoin': [3230658933],
-   'type': 'electricityConsumption',
-   'ts_to': datetime(2019, 04, 31, 23, 59, 59)
-}
+params = {'result_companyId': 1092915978,'ts_to': datetime(2018, 4, 30, 23, 59, 59)}
 t = ComparisonModule()
 t.run(params) 
     """

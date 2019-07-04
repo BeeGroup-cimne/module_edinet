@@ -88,7 +88,8 @@ class BeeModule3(object):
     def _set_hive(self):
         hive = hive_connection.connect(host=self.config['hive']['host'],
                              port=int(self.config['hive']['port']),
-                             username=self.config['hive']['username'])
+                             username=self.config['hive']['username'],
+                             auth_mechanism='PLAIN')
         return hive.cursor()
 
     def _set_hdfs(self):
