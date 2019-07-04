@@ -9,51 +9,56 @@ from hive_functions.query_builder import RawQueryBuilder
 from datetime_functions import date_n_month
 from hive_functions import create_hive_module_input_table
 import sys
+from module_edinet.edinet_comparison_module.aggregate_monthly import MRJob_aggregate
 
 
 class ComparisonModule(BeeModule3):
     def __init__(self):
         super(ComparisonModule, self).__init__("edinet_comparison_module")
         #delete hdfs directory found in config path on finish
-#        self.context.add_clean_hdfs_file(self.config['paths']['all'])
+        self.context.add_clean_hdfs_file(self.config['paths']['all'])
 
-    # def launcher_hadoop_job(self, type, input, company=None, devices=None, stations=None, map_tasks=8, red_tasks=8):
-    #     """Runs the Hadoop job uploading task configuration"""
-    #     # create report to save on completion or error
-    #     report = {
-    #         'started_at': datetime.now(),
-    #         'state': 'launched',
-    #         'input': input
-    #     }
-    #
-    #     # Create temporary file to upload with json extension to identify it in HDFS
-    #     job_extra_config = self.config.copy()
-    #     job_extra_config.update({'devices': devices, 'company': company, 'stations': stations, 'task_id': self.task_UUID})
-    #     f = NamedTemporaryFile(delete=False, suffix='.json')
-    #     f.write(json.dumps(job_extra_config))
-    #     f.close()
-    #     report['config_temp_file'] = f.name
-    #     self.logger.debug('Created temporary config file to upload into hadoop and read from job: %s' % f.name)
-    #     # create hadoop job instance adding file location to be uploaded
-    #     # add the -c configuration file
-    #     mr_job = MRJob_align(
-    #         args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name, '-c', 'module_edinet/edinet_baseline/mrjob.conf',
-    #               '--jobconf', 'mapred.map.tasks=%s' % map_tasks, '--jobconf', 'mapred.reduce.tasks=15'])
-    #     # mr_job = MRJob_align(args=['-r', 'hadoop', 'hdfs://'+input, '--file', f.name, '--output-dir', '/tmp/prova_dani', '--python-archive', path.dirname(lib.__file__)])  # debugger
-    #     with mr_job.make_runner() as runner:
-    #         try:
-    #             runner.run()
-    #         except Exception as e:
-    #             f.unlink(f.name)
-    #             raise Exception('Error running MRJob process using hadoop: {}'.format(e))
-    #
-    #     f.unlink(f.name)
-    #     self.logger.debug('Temporary config file uploaded has been deleted from FileSystem')
-    #
-    #     report['finished_at'] = datetime.now()
-    #     report['state'] = 'finished'
-    #
-    #     return report
+    def aggregate_hadoop_job(self, input, output, devices, company):
+
+        report = {
+            'started_at': datetime.now(),
+            'state': 'launched',
+            'input': input
+        }
+        self.logger.debug("generating the config file info")
+        # Create temporary file to upload with json extension to identify it in HDFS
+        job_extra_config = self.config.copy()
+        job_extra_config.update(
+            {'devices': devices, 'company': company})
+        self.logger.debug("writing the config file")
+        f = NamedTemporaryFile(delete=False, suffix='.json')
+        f.write(bytes(json.dumps(job_extra_config), encoding="utf8"))
+        f.close()
+        report['config_temp_file'] = f.name
+        self.logger.debug('Created temporary config file to upload into hadoop and read from job: {}'.format(f.name))
+        # create hadoop job instance adding file location to be uploaded
+        # add the -c configuration file
+        self.logger.debug('Generating mr jop')
+        mr_job = MRJob_aggregate(
+            args=['-r', 'hadoop', 'hdfs://{}'.format(input), '--file', f.name,
+                  '--output-dir', 'hdfs://' + output, '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
+                  '--jobconf', 'mapreduce.job.name=edinet_comparison'])
+        # mr_job = MRJob_align(args=['-r', 'hadoop', 'hdfs://'+input, '--file', f.name, '--output-dir', '/tmp/prova_dani', '--python-archive', path.dirname(lib.__file__)])  # debugger
+        self.logger.debug('running mr job')
+        with mr_job.make_runner() as runner:
+            try:
+                runner.run()
+            except Exception as e:
+                os.unlink(f.name)
+                raise Exception('Error running MRJob process using hadoop: {}'.format(e))
+
+        os.unlink(f.name)
+        self.logger.debug('Temporary config file uploaded has been deleted from FileSystem')
+
+        report['finished_at'] = datetime.now()
+        report['state'] = 'finished'
+
+        return report
 
 
     def module_task(self, params):
@@ -104,42 +109,61 @@ class ComparisonModule(BeeModule3):
 
         self.logger.info('A mongo query process has loaded {} devices'.format(len(device_key.keys())))
 
+ #        ######################################################################################################################################################################################
+ #        """ HIVE QUERY TO PREPARE DATA THAT HAS TO BE LOADED INTO MONGO """
+ #        ######################################################################################################################################################################################
+ #
+ #        # create a table with the devices values that will be the input of the MRJob that creates the monthly datatable.
+ #        self.logger.debug('creating input table to aggregate monthly')
+ #        final_table_fields = [[x[0], x[1]] for x in self.config['hive']['final_table_fields']]
+ #
+ #        location = self.config['paths']['monthly_aggregation']
+ #
+ #        input_table = create_hive_module_input_table(self.hive, self.config['hive']['job_table_name'],
+ #                                                     location, final_table_fields, self.task_UUID)
+ #
+ #        #add input table to be deleted after execution
+ # #       self.context.add_clean_hive_tables(input_table)
+ #        self.logger.debug('creating hive query')
+ #        qbr = RawQueryBuilder(self.hive)
+ #
+ #        self.logger.debug("fda")
+ #        total_select_joint = ", ".join(["{}.{}".format(x[2],x[0]) for x in self.config['hive']['final_table_fields']])
+ #        sentence = """
+ #            INSERT OVERWRITE TABLE {input_table}
+ #            SELECT {total_select_joint} FROM
+ #                (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType FROM edinet_daily_consumption ai
+ #                    WHERE
+ #                        ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
+ #                        ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss") AND
+ #                        ai.deviceid IN ({devices})) a
+ #                """.format(input_table=input_table, total_select_joint=total_select_joint, ts_from=ts_from, ts_to=ts_to,
+ #                           devices=", ".join("\"{}\"".format(x) for x in list(device_key.keys())))
+ #        self.logger.debug(sentence)
+ #        qbr.execute_query(sentence)
+
         ######################################################################################################################################################################################
-        """ HIVE QUERY TO PREPARE DATA THAT HAS TO BE LOADED INTO MONGO """
+        """ MAPREDUCE TO AGGREGATE MONTHLY DATA """
         ######################################################################################################################################################################################
+        self.logger.info('Getting')
+        # TODO: Input is calculated on demand
+        location = "/tmp/edinet_comparison/{UUID}/monthly".format(UUID="965084f34ca0471088c66023e6ee0e2a")
+        output_location = self.config['paths']['output_monthly_aggregation']
+        try:
+            # Launch MapReduce job
+            ## Buffered measures to HBase
+            self.logger.debug('Baseline Calculation')
+            self.aggregate_hadoop_job(location, output_location, device_key, result_companyId)
+        except Exception as e:
+            raise Exception('MRJob ALIGN process job has failed: {}'.format(e))
 
-        # create a table with the devices values that will be the input of the MRJob that creates the monthly datatable.
-        self.logger.debug('creating input table to aggregate monthly')
-        final_table_fields = [[x[0], x[1]] for x in self.config['hive']['final_table_fields']]
+        output_fields = [["modellingUnit", "string"], ["ts", "bigint"], ["value", "float"], ["energyType", "string"]]
+        aggregated_table_name = self.config['hive']['output_monthly_aggregation']
+        aggregated_table = create_hive_module_input_table(self.hive, aggregated_table_name,
+                                                          output_location, output_fields, self.task_UUID)
+        #self.context.add_clean_hive_tables(aggregated_table)
+        self.logger.debug("MRJob finished")
 
-        location = self.config['paths']['monthly_aggregation']
-
-        input_table = create_hive_module_input_table(self.hive, self.config['hive']['job_table_name'],
-                                                     location, final_table_fields, self.task_UUID)
-
-        #add input table to be deleted after execution
- #       self.context.add_clean_hive_tables(input_table)
-        self.logger.debug('creating hive query')
-        qbr = RawQueryBuilder(self.hive)
-
-        self.logger.debug("fda")
-        total_select_joint = ", ".join(["{}.{}".format(x[2],x[0]) for x in self.config['hive']['final_table_fields']])
-        sentence = """
-            INSERT OVERWRITE TABLE {input_table}
-            SELECT {total_select_joint} FROM
-                (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType FROM edinet_daily_consumption ai
-                    WHERE
-                        ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
-                        ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss") AND
-                        ai.deviceid IN ({devices})) a
-                """.format(input_table=input_table, total_select_joint=total_select_joint, ts_from=ts_from, ts_to=ts_to,
-                           devices=", ".join("\"{}\"".format(x) for x in list(device_key.keys())))
-        self.logger.debug(sentence)
-        qbr.execute_query(sentence)
-
-        ######################################################################################################################################################################################
-        """ HIVE QUERY TO PREPARE DATA THAT HAS TO BE LOADED INTO MONGO """
-        ######################################################################################################################################################################################
 
 if __name__ == "__main__":
     commandDictionary = json.loads(sys.argv[1], object_hook=json_util.object_hook)
