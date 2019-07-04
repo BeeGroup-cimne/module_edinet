@@ -89,7 +89,7 @@ class MRJob_aggregate(MRJob):
             self.config['mongodb']['password']
         )
 
-        mongo[self.config['mongodb']['db']][self.config['module_config']['montly_data_collection']].replace_one({
+        mongo[self.config['mongodb']['db']][self.config['mongodb']['montly_data_collection']].replace_one({
             "modellingUnitId": modelling_unit}, {
             "modellingUnitId": modelling_unit,
             "df": df_value.to_dict('records'),
