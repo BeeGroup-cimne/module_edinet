@@ -98,7 +98,7 @@ class MRJob_aggregate(MRJob):
 
         for ts, row in df_value.iterrows():
         #     yield None, "fafa".encode("utf-8")
-             yield None, "{}\t{}\t{}\t{}".format(modelling_unit, ts.timestamp(), row.value, energy_type).encode('utf-8')
+             yield None, "{}\t{}\t{}\t{}".format(modelling_unit, ts.timestamp(), row.value, energy_type)
 
 if __name__ == '__main__':
     MRJob_aggregate.run()
