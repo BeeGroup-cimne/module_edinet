@@ -16,7 +16,7 @@ class ComparisonModule(BeeModule3):
     def __init__(self):
         super(ComparisonModule, self).__init__("edinet_comparison_module")
         #delete hdfs directory found in config path on finish
-        self.context.add_clean_hdfs_file(self.config['paths']['all'])
+        #self.context.add_clean_hdfs_file(self.config['paths']['all'])
 
     def aggregate_hadoop_job(self, input, output, devices, company):
 
