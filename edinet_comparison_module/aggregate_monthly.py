@@ -1,5 +1,5 @@
 import ast
-import datetime
+from datetime import datetime
 import glob
 import numpy as np
 from mrjob.job import MRJob
