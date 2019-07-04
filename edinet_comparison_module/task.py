@@ -57,7 +57,7 @@ class ComparisonModule(BeeModule3):
 
 
     def module_task(self, params):
-#        self.logger.info('Starting Module for edinet comparisons ...')
+        self.logger.info('Starting Module for edinet comparisons ...')
         """CHECK INCONSISTENCIES IN params"""
         try:
             result_companyId = params['result_companyId']
