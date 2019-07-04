@@ -141,6 +141,7 @@ class BeeModule3(object):
         self.logger.info('Set hdfs')
         self.hbase = self._set_hbase()
         self.logger.info('Set hbase')
+        self.loggar.info("FDAFA")
         self.report.start(params)
         self.logger.info("Done")
 
@@ -195,6 +196,7 @@ class Report(dict):
         self['started_at'] = datetime.now()
         self['status'] = Report.RUNNING
         self['params'] = params
+        self.logger.debug("ASDF")
         self._save_to_mongo()
 
     def update(self, dict):
