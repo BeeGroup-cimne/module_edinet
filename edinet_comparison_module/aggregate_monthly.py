@@ -92,12 +92,12 @@ class MRJob_aggregate(MRJob):
         mongo[self.config['mongodb']['db']][self.config['mongodb']['montly_data_collection']].replace_one({
             "modellingUnitId": modelling_unit}, {
             "modellingUnitId": modelling_unit,
-            "df": df_value.to_dict('records'),
+            "df": df_value.reset_index()imp.to_dict('records'),
         }, upsert=True)
         mongo.close()
 
         for ts, row in df_value.iterrows():
-            yield None, "{}\t{}\t{}\t{}".format(modelling_unit, ts, row.value, energy_type).encode('utf-8')
+            yield None, "{}\t{}\t{}\t{}".format(modelling_unit, ts.timestamp(), row.value, energy_type).encode('utf-8')
 
 if __name__ == '__main__':
     MRJob_aggregate.run()
