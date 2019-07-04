@@ -88,8 +88,7 @@ class BeeModule3(object):
     def _set_hive(self):
         hive = hive_connection.connect(host=self.config['hive']['host'],
                              port=int(self.config['hive']['port']),
-                             username=self.config['hive']['username'],
-                             auth='PLAIN')
+                             username=self.config['hive']['username'])
         return hive.cursor()
 
     def _set_hdfs(self):
@@ -135,9 +134,13 @@ class BeeModule3(object):
     def _start_task(self, params):
         self.logger.info('Setting connections')
         self.mongo_client, self.mongo = self._set_mongo()
+        self.logger.info('Setting mongo')
         self.hive = self._set_hive()
+        self.logger.info('Setting hive')
         self.hdfs = self._set_hdfs()
+        self.logger.info('Setting hdfs')
         self.hbase = self._set_hbase()
+        self.logger.info('Setting hbase')
         self.report.start(params)
 
     def _finish_task(self):
