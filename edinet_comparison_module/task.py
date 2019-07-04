@@ -39,9 +39,10 @@ class ComparisonModule(BeeModule3):
         # create hadoop job instance adding file location to be uploaded
         # add the -c configuration file
         self.logger.debug('Generating mr jop')
+        self.logger.debug(output)
         mr_job = MRJob_aggregate(
             args=['-r', 'hadoop', 'hdfs://{}'.format(input), '--file', f.name,
-                  '--output-dir', 'hdfs://' + output, '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
+                  '--output-dir', 'hdfs://{}'.format(output), '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
                   '--jobconf', 'mapreduce.job.name=edinet_comparison'])
         # mr_job = MRJob_align(args=['-r', 'hadoop', 'hdfs://'+input, '--file', f.name, '--output-dir', '/tmp/prova_dani', '--python-archive', path.dirname(lib.__file__)])  # debugger
         self.logger.debug('running mr job')
