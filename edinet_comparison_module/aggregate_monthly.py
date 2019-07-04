@@ -97,7 +97,7 @@ class MRJob_aggregate(MRJob):
         mongo.close()
 
         for ts, row in df_value.iterrows():
-            yield None, "{}\t{}\t{}\t{}".format(modelling_unit, ts, row.value, energy_type)
+            yield None, "{}\t{}\t{}\t{}".format(modelling_unit, ts, row.value, energy_type).encode('utf-8')
 
 if __name__ == '__main__':
     MRJob_aggregate.run()
