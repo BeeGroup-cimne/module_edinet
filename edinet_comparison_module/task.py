@@ -11,6 +11,7 @@ from datetime_functions import date_n_month
 from hive_functions import create_hive_module_input_table
 import sys
 from module_edinet.edinet_comparison_module.aggregate_monthly import MRJob_aggregate
+from module_edinet.edinet_comparison_module.benchmarking import MRJob_benchmarking
 import pandas as pd
 
 class ComparisonModule(BeeModule3):
@@ -83,10 +84,10 @@ class ComparisonModule(BeeModule3):
         # create hadoop job instance adding file location to be uploaded
         # add the -c configuration file
         self.logger.debug('Generating mr jop')
-        mr_job = MRJob_aggregate(
+        mr_job = MRJob_benchmarking(
             args=['-r', 'hadoop', 'hdfs://{}'.format(input), '--file', f.name,
-                  '--output-dir', 'hdfs://{}'.format(output), '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
-                  '--jobconf', 'mapreduce.job.name=edinet_comparison'])
+                  '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
+                  '--jobconf', 'mapreduce.job.name=edinet_comparison_benchmarking'])
         # mr_job = MRJob_align(args=['-r', 'hadoop', 'hdfs://'+input, '--file', f.name, '--output-dir', '/tmp/prova_dani', '--python-archive', path.dirname(lib.__file__)])  # debugger
         self.logger.debug('running mr job')
         with mr_job.make_runner() as runner:

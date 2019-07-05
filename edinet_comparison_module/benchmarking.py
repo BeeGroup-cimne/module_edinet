@@ -7,7 +7,7 @@ import json
 from pymongo import MongoClient
 import pandas as pd
 
-class MRJob_aggregate(MRJob):
+class MRJob_benchmarking(MRJob):
     INTERNAL_PROTOCOL = PickleProtocol
 
     def mapper_init(self):
@@ -71,4 +71,4 @@ class MRJob_aggregate(MRJob):
 
 
 if __name__ == '__main__':
-    MRJob_aggregate.run()
+    MRJob_benchmarking.run()
