@@ -18,7 +18,7 @@ class ComparisonModule(BeeModule3):
     def __init__(self):
         super(ComparisonModule, self).__init__("edinet_comparison_module")
         #delete hdfs directory found in config path on finish
-        #self.context.add_clean_hdfs_file(self.config['paths']['all'])
+        self.context.add_clean_hdfs_file(self.config['paths']['all'])
 
     def aggregate_hadoop_job(self, input, output, devices, company):
 
@@ -117,17 +117,6 @@ class ComparisonModule(BeeModule3):
                                                                       'monthlyElectricityConsumption': 'electricityConsumption',
                                                                       'electricityConsumption': 'electricityConsumption'
                                                                       }
-            # criteria = sorted([sorted(criteria_set.split(" + ")) for criteria_set in params['criteria']])
-            # similar_users_group_calculation = params[
-            #     'similar_users_group_calculation'] if 'similar_users_group_calculation' in params else True
-            # min_consumption_percentile = params[
-            #     'min_consumption_percentile'] if 'min_consumption_percentile' in params else 5
-            # max_consumption_percentile = params[
-            #     'max_consumption_percentile'] if 'max_consumption_percentile' in params else 95
-            # n_months_for_best_criteria_calc = self.config['settings']['similar_users_groups'][
-            #     'n_months_for_best_criteria']
-            # fixed_percentage_for_cost = self.config['settings']['similar_users_groups'][
-            #     'fixed_percentage_for_cost']
         except KeyError as e:
             raise Exception('Not enough parameters provided to module: {}'.format(e))
 
@@ -135,129 +124,125 @@ class ComparisonModule(BeeModule3):
         """  LOAD from MONGO  """
         ######################################################################################################################################################################################
         # Get the link between the devices and the modelling units. In the form of a dict {"device":{modelling_unit~{device:multiplier}}
-        # self.logger.info('Extracting data from mongodb')
-        # modelling_units_collection = self.config['mongodb']['modelling_units_collection']
-        # cursor = self.mongo[modelling_units_collection].find({})
-        # device_key = {}
-        # for item in cursor :
-        #     if len(item['devices']) > 0:  # to avoid empty list of devices
-        #         for dev in item['devices']:
-        #             key_str = "{modelling}~{devices}".format(
-        #                 modelling=item['modellingUnitId'],
-        #                 devices=item['devices'],
-        #             )
-        #             if dev['deviceId'] in device_key.keys():
-        #                 device_key[dev['deviceId']].append(key_str)
-        #             else:
-        #                 device_key[dev['deviceId']] = [key_str]
-        # cursor.close()
-        #
-        # self.logger.info('A mongo query process has loaded {} devices'.format(len(device_key.keys())))
+        self.logger.info('Extracting data from mongodb')
+        modelling_units_collection = self.config['mongodb']['modelling_units_collection']
+        cursor = self.mongo[modelling_units_collection].find({})
+        device_key = {}
+        for item in cursor :
+            if len(item['devices']) > 0:  # to avoid empty list of devices
+                for dev in item['devices']:
+                    key_str = "{modelling}~{devices}".format(
+                        modelling=item['modellingUnitId'],
+                        devices=item['devices'],
+                    )
+                    if dev['deviceId'] in device_key.keys():
+                        device_key[dev['deviceId']].append(key_str)
+                    else:
+                        device_key[dev['deviceId']] = [key_str]
+        cursor.close()
 
- #        ######################################################################################################################################################################################
- #        """ HIVE QUERY TO PREPARE DATA THAT HAS TO BE LOADED INTO MONGO """
- #        ######################################################################################################################################################################################
- #
- #        # create a table with the devices values that will be the input of the MRJob that creates the monthly datatable.
- #        self.logger.debug('creating input table to aggregate monthly')
- #        final_table_fields = [[x[0], x[1]] for x in self.config['hive']['final_table_fields']]
- #
- #        location = self.config['paths']['monthly_aggregation']
- #
- #        input_table = create_hive_module_input_table(self.hive, self.config['hive']['job_table_name'],
- #                                                     location, final_table_fields, self.task_UUID)
- #
- #        #add input table to be deleted after execution
- # #       self.context.add_clean_hive_tables(input_table)
- #        self.logger.debug('creating hive query')
- #        qbr = RawQueryBuilder(self.hive)
- #
- #        self.logger.debug("fda")
- #        total_select_joint = ", ".join(["{}.{}".format(x[2],x[0]) for x in self.config['hive']['final_table_fields']])
- #        sentence = """
- #            INSERT OVERWRITE TABLE {input_table}
- #            SELECT {total_select_joint} FROM
- #                (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType FROM edinet_daily_consumption ai
- #                    WHERE
- #                        ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
- #                        ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss") AND
- #                        ai.deviceid IN ({devices})) a
- #                """.format(input_table=input_table, total_select_joint=total_select_joint, ts_from=ts_from, ts_to=ts_to,
- #                           devices=", ".join("\"{}\"".format(x) for x in list(device_key.keys())))
- #        self.logger.debug(sentence)
- #        qbr.execute_query(sentence)
+        self.logger.info('A mongo query process has loaded {} devices'.format(len(device_key.keys())))
+
+        ######################################################################################################################################################################################
+        """ HIVE QUERY TO PREPARE DATA THAT HAS TO BE LOADED INTO MONGO """
+        ######################################################################################################################################################################################
+
+        # create a table with the devices values that will be the input of the MRJob that creates the monthly datatable.
+        self.logger.debug('creating input table to aggregate monthly')
+        final_table_fields = [[x[0], x[1]] for x in self.config['hive']['final_table_fields']]
+
+        location = self.config['paths']['monthly_aggregation']
+
+        input_table = create_hive_module_input_table(self.hive, self.config['hive']['job_table_name'],
+                                                     location, final_table_fields, self.task_UUID)
+
+        #add input table to be deleted after execution
+        self.context.add_clean_hive_tables(input_table)
+        self.logger.debug('creating hive query')
+        qbr = RawQueryBuilder(self.hive)
+
+        self.logger.debug("fda")
+        total_select_joint = ", ".join(["{}.{}".format(x[2],x[0]) for x in self.config['hive']['final_table_fields']])
+        sentence = """
+            INSERT OVERWRITE TABLE {input_table}
+            SELECT {total_select_joint} FROM
+                (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType FROM edinet_daily_consumption ai
+                    WHERE
+                        ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
+                        ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss") AND
+                        ai.deviceid IN ({devices})) a
+                """.format(input_table=input_table, total_select_joint=total_select_joint, ts_from=ts_from, ts_to=ts_to,
+                           devices=", ".join("\"{}\"".format(x) for x in list(device_key.keys())))
+        self.logger.debug(sentence)
+        qbr.execute_query(sentence)
 
         ######################################################################################################################################################################################
         """ MAPREDUCE TO AGGREGATE MONTHLY DATA """
         ######################################################################################################################################################################################
-        # self.logger.info('Running Mapreduce for Montly Aggregation')
-        # # TODO: Input is calculated on demand
-        # location = "/tmp/edinet_comparison/{UUID}/monthly".format(UUID="965084f34ca0471088c66023e6ee0e2a")
-        # output_location = self.config['paths']['output_monthly_aggregation']
-        # try:
-        #     # Launch MapReduce job
-        #     ## Buffered measures to HBase
-        #     self.logger.debug('Montly Aggregation')
-        #     self.aggregate_hadoop_job(location, output_location, device_key, result_companyId)
-        # except Exception as e:
-        #     raise Exception('MRJob ALIGN process job has failed: {}'.format(e))
-        #
-        # output_fields = [["modellingUnit", "string"], ["ts", "bigint"], ["value", "float"], ["energyType", "string"]]
-        # aggregated_table_name = self.config['hive']['output_monthly_aggregation']
-        # aggregated_table = create_hive_module_input_table(self.hive, aggregated_table_name,
-        #                                                   output_location, output_fields, self.task_UUID)
-        #self.context.add_clean_hive_tables(aggregated_table)
-        # self.logger.debug("MRJob for monthly aggregation finished")
+        self.logger.info('Running Mapreduce for Montly Aggregation')
+        # TODO: Input is calculated on demand
+        location = "/tmp/edinet_comparison/{UUID}/monthly".format(UUID="965084f34ca0471088c66023e6ee0e2a")
+        output_location = self.config['paths']['output_monthly_aggregation']
+        try:
+            # Launch MapReduce job
+            ## Buffered measures to HBase
+            self.logger.debug('Montly Aggregation')
+            self.aggregate_hadoop_job(location, output_location, device_key, result_companyId)
+        except Exception as e:
+            raise Exception('MRJob ALIGN process job has failed: {}'.format(e))
+
+        output_fields = [["modellingUnit", "string"], ["ts", "bigint"], ["value", "float"], ["energyType", "string"]]
+        aggregated_table_name = self.config['hive']['output_monthly_aggregation']
+        aggregated_table = create_hive_module_input_table(self.hive, aggregated_table_name,
+                                                          output_location, output_fields, self.task_UUID)
+        self.context.add_clean_hive_tables(aggregated_table)
+        self.logger.debug("MRJob for monthly aggregation finished")
         ######################################################################################################################################################################################
         """ MAPREDUCE TO CALCULATE BENCHMARKING """
         ######################################################################################################################################################################################
-        # self.logger.debug('creating benchmarking information table')
-        # building_collection = self.config['mongodb']['buildings_collection']
-        # cursor = self.mongo[building_collection].find({})
-        # buildings_list = []
-        # for item in cursor :
-        #     if not 'modellingUnits' in item or not 'data' in item:
-        #         continue
-        #     if not 'useType' in item['data'] or not 'organizationLevel1' in item['data']:
-        #         continue
-        #     for modelling in item['modellingUnits']:
-        #         b_dic={"modellingunit":modelling, "type": item['data']['useType'], "organization":item['data']['organizationLevel1']}
-        #         buildings_list.append(b_dic)
-        # cursor.close()
-        #
-        # buildings_df = pd.DataFrame.from_records(buildings_list, columns=['modellingunit','type','organization'])
-        # f_station = NamedTemporaryFile(delete=False, suffix='.csv')
-        # buildings_df.to_csv(f_station.name, header=None, index=None)
-        # call(["hadoop", "fs", "-mkdir", "-p", f_station.name, self.config['paths']['building_info']])
-        # call(["hadoop", "fs", "-copyFromLocal", f_station.name, self.config['paths']['building_info']])
-        # building_table = create_hive_module_input_table(self.hive, self.config['hive']['building_info_table'],
-        #                                                 self.config['paths']['building_info'],
-        #                                                 [('modellingunit', 'string'), ('type', 'string'),('organization','string')],
-        #                                                 self.task_UUID, sep=",")
-        #self.context.add_clean_hive_tables(building_table)
+        self.logger.debug('creating benchmarking information table')
+        building_collection = self.config['mongodb']['buildings_collection']
+        cursor = self.mongo[building_collection].find({})
+        buildings_list = []
+        for item in cursor :
+            if not 'modellingUnits' in item or not 'data' in item:
+                continue
+            if not 'useType' in item['data'] or not 'organizationLevel1' in item['data']:
+                continue
+            for modelling in item['modellingUnits']:
+                b_dic={"modellingunit":modelling, "type": item['data']['useType'], "organization":item['data']['organizationLevel1']}
+                buildings_list.append(b_dic)
+        cursor.close()
 
-        # TODO: Input is calculated on demand
-        # aggregated_table = "edinet_monthly_aggregation_83080a83bc0f43d6871ed8a7220e7921"
-        # building_table = "edinet_building_info_0c72b162780a4f9eb22eacf35dcc388d"
-        # self.logger.debug('creating hive query to join data with information')
-        # qbr = RawQueryBuilder(self.hive)
-        # location = self.config['paths']['benchmarking_data']
-        # benchmarking_field = self.config['hive']['benchmarking_table_fields']
-        # benchmarking_table = create_hive_module_input_table(self.hive, self.config['hive']['benchmarking_table'],
-        #                                             location, benchmarking_field, self.task_UUID)
-        #
-        # total_select_joint = ", ".join(["{}.{}".format(x[2], x[0]) for x in benchmarking_field])
-        # sentence = """
-        #    INSERT OVERWRITE TABLE {input_table}
-        #    SELECT {total_select_joint} FROM
-        #        (SELECT * FROM {aggregated_table}) a
-        #        JOIN {building_table} b on a.modellingUnit==b.modellingUnit
-        #        """.format(input_table=benchmarking_table, total_select_joint=total_select_joint,
-        #                   aggregated_table=aggregated_table, building_table=building_table)
-        # self.logger.debug(sentence)
-        # qbr.execute_query(sentence)
+        buildings_df = pd.DataFrame.from_records(buildings_list, columns=['modellingunit','type','organization'])
+        f_station = NamedTemporaryFile(delete=False, suffix='.csv')
+        buildings_df.to_csv(f_station.name, header=None, index=None)
+        call(["hadoop", "fs", "-mkdir", "-p", f_station.name, self.config['paths']['building_info']])
+        call(["hadoop", "fs", "-copyFromLocal", f_station.name, self.config['paths']['building_info']])
+        building_table = create_hive_module_input_table(self.hive, self.config['hive']['building_info_table'],
+                                                        self.config['paths']['building_info'],
+                                                        [('modellingunit', 'string'), ('type', 'string'),('organization','string')],
+                                                        self.task_UUID, sep=",")
+        self.context.add_clean_hive_tables(building_table)
 
-        location = "/tmp/edinet_comparison/{UUID}/benchmarking_data".format(UUID="a5af71db2eb6406ea50c659380a20b6b")
+        self.logger.debug('creating hive query to join data with information')
+        qbr = RawQueryBuilder(self.hive)
+        location = self.config['paths']['benchmarking_data']
+        benchmarking_field = self.config['hive']['benchmarking_table_fields']
+        benchmarking_table = create_hive_module_input_table(self.hive, self.config['hive']['benchmarking_table'],
+                                                    location, benchmarking_field, self.task_UUID)
+
+        total_select_joint = ", ".join(["{}.{}".format(x[2], x[0]) for x in benchmarking_field])
+        sentence = """
+           INSERT OVERWRITE TABLE {input_table}
+           SELECT {total_select_joint} FROM
+               (SELECT * FROM {aggregated_table}) a
+               JOIN {building_table} b on a.modellingUnit==b.modellingUnit
+               """.format(input_table=benchmarking_table, total_select_joint=total_select_joint,
+                          aggregated_table=aggregated_table, building_table=building_table)
+        self.logger.debug(sentence)
+        qbr.execute_query(sentence)
+
         self.logger.info('Running Mapreduce for Benchmarking')
         try:
             # Launch MapReduce job
@@ -273,7 +258,6 @@ if __name__ == "__main__":
     commandDictionary = json.loads(sys.argv[1], object_hook=json_util.object_hook)
     job = ComparisonModule()
     job.run(commandDictionary)
-
 
     """
 from module_edinet.edinet_comparison_module.task import ComparisonModule

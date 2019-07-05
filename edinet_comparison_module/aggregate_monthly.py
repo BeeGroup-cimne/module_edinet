@@ -82,7 +82,8 @@ class MRJob_aggregate(MRJob):
                 df_new_daily += data[['value']] * multiplier[device]
 
         df_new_daily = df_new_daily.sort_index()
-        df_value = df_new_daily[['value']].resample('M').sum()
+        df_value = df_new_daily[['value']].resample('M').mean()
+        df_value['days'] = df_new_daily[['value']].resample('M').count()
         mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
         mongo[self.config['mongodb']['db']].authenticate(
             self.config['mongodb']['username'],
