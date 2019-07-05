@@ -252,7 +252,7 @@ class ComparisonModule(BeeModule3):
         sentence = """
            INSERT OVERWRITE TABLE {input_table}
            SELECT {total_select_joint} FROM
-               SELECT * FROM {aggregated_table} a
+               (SELECT * FROM {aggregated_table}) a
                JOIN {building_table} b on a.modellingUnit==b.modellingUnit
                """.format(input_table=benchmarking_table, total_select_joint=total_select_joint,
                           aggregated_table=aggregated_table, building_table=building_table)
