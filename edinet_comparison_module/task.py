@@ -62,7 +62,7 @@ class ComparisonModule(BeeModule3):
 
         return report
 
-    def benchmarking_hadoop_job(self, input, devices, company):
+    def benchmarking_hadoop_job(self, input, energyTypeDict, company):
 
         report = {
             'started_at': datetime.now(),
@@ -73,7 +73,7 @@ class ComparisonModule(BeeModule3):
         # Create temporary file to upload with json extension to identify it in HDFS
         job_extra_config = self.config.copy()
         job_extra_config.update(
-            {'devices': devices, 'company': company})
+            {'energyTypeDict': energyTypeDict, 'company': company})
         self.logger.debug("writing the config file")
         f = NamedTemporaryFile(delete=False, suffix='.json')
         f.write(bytes(json.dumps(job_extra_config), encoding="utf8"))
@@ -83,7 +83,6 @@ class ComparisonModule(BeeModule3):
         # create hadoop job instance adding file location to be uploaded
         # add the -c configuration file
         self.logger.debug('Generating mr jop')
-        self.logger.debug(output)
         mr_job = MRJob_aggregate(
             args=['-r', 'hadoop', 'hdfs://{}'.format(input), '--file', f.name,
                   '--output-dir', 'hdfs://{}'.format(output), '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
@@ -112,10 +111,11 @@ class ComparisonModule(BeeModule3):
             result_companyId = params['result_companyId']
             ts_to = params['ts_to']
             ts_from = params['ts_from'] if 'ts_from' in params else date_n_month(ts_to, -48)
-            energyTypeDict = params['type'] if 'type' in params else {
-                'gasConsumption': ['heatConsumption', 'gasConsumption'],
-                'electricityConsumption': ['electricityConsumption', 'monthlyElectricityConsumption']
-            }
+            energyTypeDict = params['type'] if 'type' in params else {'heatConsumption': 'gasConsumption',
+                                                                      'gasConsumption': 'gasConsumption',
+                                                                      'monthlyElectricityConsumption': 'electricityConsumption',
+                                                                      'electricityConsumption': 'electricityConsumption'
+                                                                      }
             # criteria = sorted([sorted(criteria_set.split(" + ")) for criteria_set in params['criteria']])
             # similar_users_group_calculation = params[
             #     'similar_users_group_calculation'] if 'similar_users_group_calculation' in params else True
@@ -210,8 +210,6 @@ class ComparisonModule(BeeModule3):
         ######################################################################################################################################################################################
         """ MAPREDUCE TO CALCULATE BENCHMARKING """
         ######################################################################################################################################################################################
-        # self.logger.info('Running Mapreduce for Montly Aggregation')
-        #
         # self.logger.debug('creating benchmarking information table')
         # building_collection = self.config['mongodb']['buildings_collection']
         # cursor = self.mongo[building_collection].find({})
@@ -226,7 +224,7 @@ class ComparisonModule(BeeModule3):
         #         buildings_list.append(b_dic)
         # cursor.close()
         #
-        # buildings_df = pd.DataFrame.from_records(buildings_list)
+        # buildings_df = pd.DataFrame.from_records(buildings_list, columns=['modellingunit','type','organization'])
         # f_station = NamedTemporaryFile(delete=False, suffix='.csv')
         # buildings_df.to_csv(f_station.name, header=None, index=None)
         # call(["hadoop", "fs", "-mkdir", "-p", f_station.name, self.config['paths']['building_info']])
@@ -238,36 +236,37 @@ class ComparisonModule(BeeModule3):
         #self.context.add_clean_hive_tables(building_table)
 
         # TODO: Input is calculated on demand
-        # location = "/tmp/edinet_comparison/{UUID}/output_monthly".format(UUID="83080a83bc0f43d6871ed8a7220e7921")
-        aggregated_table = "edinet_monthly_aggregation_83080a83bc0f43d6871ed8a7220e7921"
-        building_table = "edinet_building_info_0c72b162780a4f9eb22eacf35dcc388d"
-        self.logger.debug('creating hive query to join data with information')
-        qbr = RawQueryBuilder(self.hive)
-        location = self.config['paths']['benchmarking_data']
-        benchmarking_field = self.config['hive']['benchmarking_table_fields']
-        benchmarking_table = create_hive_module_input_table(self.hive, self.config['hive']['benchmarking_table'],
-                                                    location, benchmarking_field, self.task_UUID)
-
-        total_select_joint = ", ".join(["{}.{}".format(x[2], x[0]) for x in benchmarking_field])
-        sentence = """
-           INSERT OVERWRITE TABLE {input_table}
-           SELECT {total_select_joint} FROM
-               (SELECT * FROM {aggregated_table}) a
-               JOIN {building_table} b on a.modellingUnit==b.modellingUnit
-               """.format(input_table=benchmarking_table, total_select_joint=total_select_joint,
-                          aggregated_table=aggregated_table, building_table=building_table)
-        self.logger.debug(sentence)
-        qbr.execute_query(sentence)
-
-        # try:
-        #     # Launch MapReduce job
-        #     ## Buffered measures to HBase
-        #     self.logger.debug('Benchmarking_calculation')
-        #     self.benchmarking_hadoop_job(location, device_key, result_companyId)
-        # except Exception as e:
-        #     raise Exception('MRJob ALIGN process job has failed: {}'.format(e))
+        # aggregated_table = "edinet_monthly_aggregation_83080a83bc0f43d6871ed8a7220e7921"
+        # building_table = "edinet_building_info_0c72b162780a4f9eb22eacf35dcc388d"
+        # self.logger.debug('creating hive query to join data with information')
+        # qbr = RawQueryBuilder(self.hive)
+        # location = self.config['paths']['benchmarking_data']
+        # benchmarking_field = self.config['hive']['benchmarking_table_fields']
+        # benchmarking_table = create_hive_module_input_table(self.hive, self.config['hive']['benchmarking_table'],
+        #                                             location, benchmarking_field, self.task_UUID)
         #
-        # self.logger.debug("MRJob for monthly aggregation finished")
+        # total_select_joint = ", ".join(["{}.{}".format(x[2], x[0]) for x in benchmarking_field])
+        # sentence = """
+        #    INSERT OVERWRITE TABLE {input_table}
+        #    SELECT {total_select_joint} FROM
+        #        (SELECT * FROM {aggregated_table}) a
+        #        JOIN {building_table} b on a.modellingUnit==b.modellingUnit
+        #        """.format(input_table=benchmarking_table, total_select_joint=total_select_joint,
+        #                   aggregated_table=aggregated_table, building_table=building_table)
+        # self.logger.debug(sentence)
+        # qbr.execute_query(sentence)
+
+        location = "/tmp/edinet_comparison/{UUID}/benchmarking_data".format(UUID="a5af71db2eb6406ea50c659380a20b6b")
+        self.logger.info('Running Mapreduce for Benchmarking')
+        try:
+            # Launch MapReduce job
+            ## Buffered measures to HBase
+            self.logger.debug('Benchmarking_calculation')
+            self.benchmarking_hadoop_job(location, energyTypeDict, result_companyId)
+        except Exception as e:
+            raise Exception('MRJob ALIGN process job has failed: {}'.format(e))
+
+        self.logger.debug("MRJob for benchmarking finished")
 
 if __name__ == "__main__":
     commandDictionary = json.loads(sys.argv[1], object_hook=json_util.object_hook)
