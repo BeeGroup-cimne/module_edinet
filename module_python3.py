@@ -22,7 +22,7 @@ class BeeModule3(object):
         self.logger.addHandler(logging.StreamHandler())
         self.logger.setLevel("DEBUG")
         self.mongo = None
-        self.hive = None
+        self._hive = None
         self.hdfs = None
         self.hbase = None
         self.config = self._set_config(module_name, kwargs)
@@ -92,7 +92,7 @@ class BeeModule3(object):
         return hive
 
     def get_hive(self):
-        return self.hive.open()
+        return self._hive.open()
 
     hive = property(get_hive, None)
 
@@ -139,7 +139,7 @@ class BeeModule3(object):
     def _start_task(self, params):
         self.logger.info('Setting connections')
         self.mongo_client, self.mongo = self._set_mongo()
-        self.hive = self._set_hive()
+        self._hive = self._set_hive()
         self.hdfs = self._set_hdfs()
         self.hbase = self._set_hbase()
         self.report.start(params)
@@ -151,9 +151,6 @@ class BeeModule3(object):
         if self.hbase:
             self.hbase.close()
             self.hbase = None
-        if self.hive:
-            self.hive.close()
-            self.hive = None
         if self.mongo_client:
             self.mongo_client.close()
             self.mongo_client = None
