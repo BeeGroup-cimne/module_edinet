@@ -52,7 +52,7 @@ class MRJob_benchmarking(MRJob):
             self.config['mongodb']['password']
         )
 
-        mongo[self.config['mongodb']['db']][self.config['mongodb']['montly_data_collection']].replace_one(
+        mongo[self.config['mongodb']['db']][self.config['mongodb']['benchmarking']].replace_one(
             {
                 "criteria": criteria,
                 "criteria_values": criteria_values,
