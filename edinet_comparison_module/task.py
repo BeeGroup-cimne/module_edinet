@@ -146,37 +146,37 @@ class ComparisonModule(BeeModule3):
         ######################################################################################################################################################################################
         """ HIVE QUERY TO PREPARE DATA THAT HAS TO BE LOADED INTO MONGO """
         ######################################################################################################################################################################################
-
-        # create a table with the devices values that will be the input of the MRJob that creates the monthly datatable.
-        self.logger.debug('creating input table to aggregate monthly')
-        final_table_fields = [[x[0], x[1]] for x in self.config['hive']['final_table_fields']]
-
-        location = self.config['paths']['monthly_aggregation']
-
-        input_table = create_hive_module_input_table(self.hive, self.config['hive']['job_table_name'],
-                                                     location, final_table_fields, self.task_UUID)
-
-        #add input table to be deleted after execution
-        self.context.add_clean_hive_tables(input_table)
-        self.logger.debug('creating hive query')
-        qbr = RawQueryBuilder(self.hive)
-
-        self.logger.debug("fda")
-        total_select_joint = ", ".join(["{}.{}".format(x[2],x[0]) for x in self.config['hive']['final_table_fields']])
-        sentence = """
-            INSERT OVERWRITE TABLE {input_table}
-            SELECT {total_select_joint} FROM
-                (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType FROM edinet_daily_consumption ai
-                    WHERE
-                        ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
-                        ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss") AND
-                        ai.deviceid IN ({devices})) a
-                """.format(input_table=input_table, total_select_joint=total_select_joint, ts_from=ts_from, ts_to=ts_to,
-                           devices=", ".join("\"{}\"".format(x) for x in list(device_key.keys())))
-        self.logger.debug(sentence)
-        qbr.execute_query(sentence)
-        self.hive.close()
-        self.logger.debug("AAAAAAAAAAAAAAAAAAAAAAAAA")
+        #
+        # # create a table with the devices values that will be the input of the MRJob that creates the monthly datatable.
+        # self.logger.debug('creating input table to aggregate monthly')
+        # final_table_fields = [[x[0], x[1]] for x in self.config['hive']['final_table_fields']]
+        #
+        # location = self.config['paths']['monthly_aggregation']
+        #
+        # input_table = create_hive_module_input_table(self.hive, self.config['hive']['job_table_name'],
+        #                                              location, final_table_fields, self.task_UUID)
+        #
+        # #add input table to be deleted after execution
+        # self.context.add_clean_hive_tables(input_table)
+        # self.logger.debug('creating hive query')
+        # qbr = RawQueryBuilder(self.hive)
+        #
+        # self.logger.debug("fda")
+        # total_select_joint = ", ".join(["{}.{}".format(x[2],x[0]) for x in self.config['hive']['final_table_fields']])
+        # sentence = """
+        #     INSERT OVERWRITE TABLE {input_table}
+        #     SELECT {total_select_joint} FROM
+        #         (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType FROM edinet_daily_consumption ai
+        #             WHERE
+        #                 ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
+        #                 ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss") AND
+        #                 ai.deviceid IN ({devices})) a
+        #         """.format(input_table=input_table, total_select_joint=total_select_joint, ts_from=ts_from, ts_to=ts_to,
+        #                    devices=", ".join("\"{}\"".format(x) for x in list(device_key.keys())))
+        # self.logger.debug(sentence)
+        # qbr.execute_query(sentence)
+        # self.hive.close()
+        # self.logger.debug("AAAAAAAAAAAAAAAAAAAAAAAAA")
         ######################################################################################################################################################################################
         """ MAPREDUCE TO AGGREGATE MONTHLY DATA """
         ######################################################################################################################################################################################
