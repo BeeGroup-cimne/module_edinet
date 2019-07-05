@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from subprocess import call
 from tempfile import NamedTemporaryFile
 
 from bson import json_util
@@ -10,7 +11,7 @@ from datetime_functions import date_n_month
 from hive_functions import create_hive_module_input_table
 import sys
 from module_edinet.edinet_comparison_module.aggregate_monthly import MRJob_aggregate
-
+import pandas as pd
 
 class ComparisonModule(BeeModule3):
     def __init__(self):
@@ -61,6 +62,48 @@ class ComparisonModule(BeeModule3):
 
         return report
 
+    def benchmarking_hadoop_job(self, input, devices, company):
+
+        report = {
+            'started_at': datetime.now(),
+            'state': 'launched',
+            'input': input
+        }
+        self.logger.debug("generating the config file info")
+        # Create temporary file to upload with json extension to identify it in HDFS
+        job_extra_config = self.config.copy()
+        job_extra_config.update(
+            {'devices': devices, 'company': company})
+        self.logger.debug("writing the config file")
+        f = NamedTemporaryFile(delete=False, suffix='.json')
+        f.write(bytes(json.dumps(job_extra_config), encoding="utf8"))
+        f.close()
+        report['config_temp_file'] = f.name
+        self.logger.debug('Created temporary config file to upload into hadoop and read from job: {}'.format(f.name))
+        # create hadoop job instance adding file location to be uploaded
+        # add the -c configuration file
+        self.logger.debug('Generating mr jop')
+        self.logger.debug(output)
+        mr_job = MRJob_aggregate(
+            args=['-r', 'hadoop', 'hdfs://{}'.format(input), '--file', f.name,
+                  '--output-dir', 'hdfs://{}'.format(output), '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
+                  '--jobconf', 'mapreduce.job.name=edinet_comparison'])
+        # mr_job = MRJob_align(args=['-r', 'hadoop', 'hdfs://'+input, '--file', f.name, '--output-dir', '/tmp/prova_dani', '--python-archive', path.dirname(lib.__file__)])  # debugger
+        self.logger.debug('running mr job')
+        with mr_job.make_runner() as runner:
+            try:
+                runner.run()
+            except Exception as e:
+                os.unlink(f.name)
+                raise Exception('Error running MRJob process using hadoop: {}'.format(e))
+
+        os.unlink(f.name)
+        self.logger.debug('Temporary config file uploaded has been deleted from FileSystem')
+
+        report['finished_at'] = datetime.now()
+        report['state'] = 'finished'
+
+        return report
 
     def module_task(self, params):
         self.logger.info('Starting Module for edinet comparisons ...')
@@ -91,24 +134,24 @@ class ComparisonModule(BeeModule3):
         """  LOAD from MONGO  """
         ######################################################################################################################################################################################
         # Get the link between the devices and the modelling units. In the form of a dict {"device":{modelling_unit~{device:multiplier}}
-        self.logger.info('Extracting data from mongodb')
-        modelling_units_collection = self.config['mongodb']['modelling_units_collection']
-        cursor = self.mongo[modelling_units_collection].find({})
-        device_key = {}
-        for item in cursor :
-            if len(item['devices']) > 0:  # to avoid empty list of devices
-                for dev in item['devices']:
-                    key_str = "{modelling}~{devices}".format(
-                        modelling=item['modellingUnitId'],
-                        devices=item['devices'],
-                    )
-                    if dev['deviceId'] in device_key.keys():
-                        device_key[dev['deviceId']].append(key_str)
-                    else:
-                        device_key[dev['deviceId']] = [key_str]
-        cursor.close()
-
-        self.logger.info('A mongo query process has loaded {} devices'.format(len(device_key.keys())))
+        # self.logger.info('Extracting data from mongodb')
+        # modelling_units_collection = self.config['mongodb']['modelling_units_collection']
+        # cursor = self.mongo[modelling_units_collection].find({})
+        # device_key = {}
+        # for item in cursor :
+        #     if len(item['devices']) > 0:  # to avoid empty list of devices
+        #         for dev in item['devices']:
+        #             key_str = "{modelling}~{devices}".format(
+        #                 modelling=item['modellingUnitId'],
+        #                 devices=item['devices'],
+        #             )
+        #             if dev['deviceId'] in device_key.keys():
+        #                 device_key[dev['deviceId']].append(key_str)
+        #             else:
+        #                 device_key[dev['deviceId']] = [key_str]
+        # cursor.close()
+        #
+        # self.logger.info('A mongo query process has loaded {} devices'.format(len(device_key.keys())))
 
  #        ######################################################################################################################################################################################
  #        """ HIVE QUERY TO PREPARE DATA THAT HAS TO BE LOADED INTO MONGO """
@@ -146,25 +189,62 @@ class ComparisonModule(BeeModule3):
         ######################################################################################################################################################################################
         """ MAPREDUCE TO AGGREGATE MONTHLY DATA """
         ######################################################################################################################################################################################
-        self.logger.info('Getting')
-        # TODO: Input is calculated on demand
-        location = "/tmp/edinet_comparison/{UUID}/monthly".format(UUID="965084f34ca0471088c66023e6ee0e2a")
-        output_location = self.config['paths']['output_monthly_aggregation']
-        try:
-            # Launch MapReduce job
-            ## Buffered measures to HBase
-            self.logger.debug('Baseline Calculation')
-            self.aggregate_hadoop_job(location, output_location, device_key, result_companyId)
-        except Exception as e:
-            raise Exception('MRJob ALIGN process job has failed: {}'.format(e))
-
-        output_fields = [["modellingUnit", "string"], ["ts", "bigint"], ["value", "float"], ["energyType", "string"]]
-        aggregated_table_name = self.config['hive']['output_monthly_aggregation']
-        aggregated_table = create_hive_module_input_table(self.hive, aggregated_table_name,
-                                                          output_location, output_fields, self.task_UUID)
+        # self.logger.info('Running Mapreduce for Montly Aggregation')
+        # # TODO: Input is calculated on demand
+        # location = "/tmp/edinet_comparison/{UUID}/monthly".format(UUID="965084f34ca0471088c66023e6ee0e2a")
+        # output_location = self.config['paths']['output_monthly_aggregation']
+        # try:
+        #     # Launch MapReduce job
+        #     ## Buffered measures to HBase
+        #     self.logger.debug('Montly Aggregation')
+        #     self.aggregate_hadoop_job(location, output_location, device_key, result_companyId)
+        # except Exception as e:
+        #     raise Exception('MRJob ALIGN process job has failed: {}'.format(e))
+        #
+        # output_fields = [["modellingUnit", "string"], ["ts", "bigint"], ["value", "float"], ["energyType", "string"]]
+        # aggregated_table_name = self.config['hive']['output_monthly_aggregation']
+        # aggregated_table = create_hive_module_input_table(self.hive, aggregated_table_name,
+        #                                                   output_location, output_fields, self.task_UUID)
         #self.context.add_clean_hive_tables(aggregated_table)
-        self.logger.debug("MRJob finished")
+        # self.logger.debug("MRJob for monthly aggregation finished")
+        ######################################################################################################################################################################################
+        """ MAPREDUCE TO CALCULATE BENCHMARKING """
+        ######################################################################################################################################################################################
+        self.logger.info('Running Mapreduce for Montly Aggregation')
+        # TODO: Input is calculated on demand
+        # location = "/tmp/edinet_comparison/{UUID}/output_monthly".format(UUID="83080a83bc0f43d6871ed8a7220e7921")
+        # aggregated_table = "edinet_monthly_aggregation_83080a83bc0f43d6871ed8a7220e7921"
 
+        self.logger.debug('creating benchmarking information table')
+        building_collection = self.config['mongodb']['buildings_collection']
+        cursor = self.mongo[building_collection].find({})
+        buildings_list = []
+        for item in cursor :
+            for modelling in item['modellingUnits']:
+                b_dic={"modellingunit":modelling, "type": item['data']['useType'], "organization":item['data']['organizationLevel1']}
+                buildings_list.append(b_dic)
+        cursor.close()
+
+        buildings_df = pd.DataFrame.from_records(buildings_list)
+        f_station = NamedTemporaryFile(delete=False, suffix='.csv')
+        buildings_df.to_csv(f_station.name, header=None, index=None)
+        call(["hadoop", "fs", "-mkdir", "-p", f_station.name, self.config['paths']['building_info']])
+        call(["hadoop", "fs", "-copyFromLocal", f_station.name, self.config['paths']['building_info']])
+        building_table = create_hive_module_input_table(self.hive, self.config['paths']['building_info'],
+                                                          self.config['hive']['building_info_table'],
+                                                          [('modellingunit', 'string'), ('type', 'string'),('organization','string')],
+                                                          self.task_UUID, sep=",")
+        #self.context.add_clean_hive_tables(building_table)
+
+        # try:
+        #     # Launch MapReduce job
+        #     ## Buffered measures to HBase
+        #     self.logger.debug('Benchmarking_calculation')
+        #     self.benchmarking_hadoop_job(location, device_key, result_companyId)
+        # except Exception as e:
+        #     raise Exception('MRJob ALIGN process job has failed: {}'.format(e))
+        #
+        # self.logger.debug("MRJob for monthly aggregation finished")
 
 if __name__ == "__main__":
     commandDictionary = json.loads(sys.argv[1], object_hook=json_util.object_hook)
