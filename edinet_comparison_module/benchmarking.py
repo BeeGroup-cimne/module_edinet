@@ -41,7 +41,7 @@ class MRJob_benchmarking(MRJob):
         # obtain the needed info from the key
         criteria_values, energy_type, month, criteria = key.split('~')
         df = pd.DataFrame.from_records(values)
-        df.values = pd.to_numeric(df.values, errors='coerce')
+        df.value = pd.to_numeric(df.value, errors='coerce')
         if len(df) < int(self.config['settings']['min_elements_benchmarking']):
             return
         breaks = self.config['settings']['breaks']
