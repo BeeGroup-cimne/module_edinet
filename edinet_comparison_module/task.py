@@ -176,26 +176,25 @@ class ComparisonModule(BeeModule3):
         self.logger.debug(sentence)
         qbr.execute_query(sentence)
         self.logger.debug("AAAAAAAAAAAAAAAAAAAAAAAAA")
-        # ######################################################################################################################################################################################
-        # """ MAPREDUCE TO AGGREGATE MONTHLY DATA """
-        # ######################################################################################################################################################################################
-        # self.logger.info('Running Mapreduce for Montly Aggregation')
-        # # TODO: Input is calculated on demand
-        # output_location = self.config['paths']['output_monthly_aggregation']
-        # try:
-        #     # Launch MapReduce job
-        #     ## Buffered measures to HBase
-        #     self.logger.debug('Montly Aggregation')
-        #     self.aggregate_hadoop_job(location, output_location, device_key, result_companyId)
-        # except Exception as e:
-        #     raise Exception('MRJob ALIGN process job has failed: {}'.format(e))
-        #
-        # output_fields = [["modellingUnit", "string"], ["ts", "bigint"], ["value", "float"], ["energyType", "string"]]
-        # aggregated_table_name = self.config['hive']['output_monthly_aggregation']
-        # aggregated_table = create_hive_module_input_table(self.hive, aggregated_table_name,
-        #                                                   output_location, output_fields, self.task_UUID)
-        # self.context.add_clean_hive_tables(aggregated_table)
-        # self.logger.debug("MRJob for monthly aggregation finished")
+        ######################################################################################################################################################################################
+        """ MAPREDUCE TO AGGREGATE MONTHLY DATA """
+        ######################################################################################################################################################################################
+        self.logger.info('Running Mapreduce for Montly Aggregation')
+        output_location = self.config['paths']['output_monthly_aggregation']
+        try:
+            # Launch MapReduce job
+            ## Buffered measures to HBase
+            self.logger.debug('Montly Aggregation')
+            self.aggregate_hadoop_job(location, output_location, device_key, result_companyId)
+        except Exception as e:
+            raise Exception('MRJob ALIGN process job has failed: {}'.format(e))
+
+        output_fields = [["modellingUnit", "string"], ["ts", "bigint"], ["value", "float"], ["energyType", "string"]]
+        aggregated_table_name = self.config['hive']['output_monthly_aggregation']
+        aggregated_table = create_hive_module_input_table(self.hive, aggregated_table_name,
+                                                          output_location, output_fields, self.task_UUID)
+        self.context.add_clean_hive_tables(aggregated_table)
+        self.logger.debug("MRJob for monthly aggregation finished")
         # ######################################################################################################################################################################################
         # """ MAPREDUCE TO CALCULATE BENCHMARKING """
         # ######################################################################################################################################################################################
