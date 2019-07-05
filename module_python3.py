@@ -22,7 +22,7 @@ class BeeModule3(object):
         self.logger.addHandler(logging.StreamHandler())
         self.logger.setLevel("DEBUG")
         self.mongo = None
-        self._hive = None
+        self.hive = None
         self.hdfs = None
         self.hbase = None
         self.config = self._set_config(module_name, kwargs)
@@ -89,12 +89,7 @@ class BeeModule3(object):
         hive = hive_connection.connect(host=self.config['hive']['host'],
                              port=int(self.config['hive']['port']),
                              username=self.config['hive']['username'])
-        return hive
-
-    def get_hive(self):
-        return self._hive.open()
-
-    hive = property(get_hive, None)
+        return hive.cursor()
 
     def _set_hdfs(self):
         hdfs = snakeBiteClient(self.config['hdfs']['host'], int(self.config['hdfs']['port']))
@@ -139,7 +134,7 @@ class BeeModule3(object):
     def _start_task(self, params):
         self.logger.info('Setting connections')
         self.mongo_client, self.mongo = self._set_mongo()
-        self._hive = self._set_hive()
+        self.hive = self._set_hive()
         self.hdfs = self._set_hdfs()
         self.hbase = self._set_hbase()
         self.report.start(params)
@@ -151,6 +146,9 @@ class BeeModule3(object):
         if self.hbase:
             self.hbase.close()
             self.hbase = None
+        if self.hive:
+            self.hive.close()
+            self.hive = None
         if self.mongo_client:
             self.mongo_client.close()
             self.mongo_client = None
