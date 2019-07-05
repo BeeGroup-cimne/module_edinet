@@ -234,10 +234,10 @@ class ComparisonModule(BeeModule3):
         buildings_df.to_csv(f_station.name, header=None, index=None)
         call(["hadoop", "fs", "-mkdir", "-p", f_station.name, self.config['paths']['building_info']])
         call(["hadoop", "fs", "-copyFromLocal", f_station.name, self.config['paths']['building_info']])
-        building_table = create_hive_module_input_table(self.hive, self.config['paths']['building_info'],
-                                                          self.config['hive']['building_info_table'],
-                                                          [('modellingunit', 'string'), ('type', 'string'),('organization','string')],
-                                                          self.task_UUID, sep=",")
+        building_table = create_hive_module_input_table(self.hive, self.config['hive']['building_info_table'],
+                                                        self.config['paths']['building_info'],
+                                                        [('modellingunit', 'string'), ('type', 'string'),('organization','string')],
+                                                        self.task_UUID, sep=",")
         #self.context.add_clean_hive_tables(building_table)
 
         # try:
