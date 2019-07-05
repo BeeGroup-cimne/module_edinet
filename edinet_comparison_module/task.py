@@ -175,6 +175,7 @@ class ComparisonModule(BeeModule3):
                            devices=", ".join("\"{}\"".format(x) for x in list(device_key.keys())))
         self.logger.debug(sentence)
         qbr.execute_query(sentence)
+        self.hive.close()
         self.logger.debug("AAAAAAAAAAAAAAAAAAAAAAAAA")
         ######################################################################################################################################################################################
         """ MAPREDUCE TO AGGREGATE MONTHLY DATA """

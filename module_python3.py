@@ -89,7 +89,12 @@ class BeeModule3(object):
         hive = hive_connection.connect(host=self.config['hive']['host'],
                              port=int(self.config['hive']['port']),
                              username=self.config['hive']['username'])
-        return hive.cursor()
+        return hive
+
+    def get_hive(self):
+        return self.hive.open()
+
+    hive = property(get_hive, None)
 
     def _set_hdfs(self):
         hdfs = snakeBiteClient(self.config['hdfs']['host'], int(self.config['hdfs']['port']))
