@@ -220,6 +220,10 @@ class ComparisonModule(BeeModule3):
         cursor = self.mongo[building_collection].find({})
         buildings_list = []
         for item in cursor :
+            if not 'modellingUnits' in item and not 'data' in item:
+                continue
+            if not 'useType' in item['data'] and not 'organizationLevel1' in item['data']:
+                continue
             for modelling in item['modellingUnits']:
                 b_dic={"modellingunit":modelling, "type": item['data']['useType'], "organization":item['data']['organizationLevel1']}
                 buildings_list.append(b_dic)
