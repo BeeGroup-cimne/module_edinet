@@ -210,35 +210,54 @@ class ComparisonModule(BeeModule3):
         ######################################################################################################################################################################################
         """ MAPREDUCE TO CALCULATE BENCHMARKING """
         ######################################################################################################################################################################################
-        self.logger.info('Running Mapreduce for Montly Aggregation')
+        # self.logger.info('Running Mapreduce for Montly Aggregation')
+        #
+        # self.logger.debug('creating benchmarking information table')
+        # building_collection = self.config['mongodb']['buildings_collection']
+        # cursor = self.mongo[building_collection].find({})
+        # buildings_list = []
+        # for item in cursor :
+        #     if not 'modellingUnits' in item or not 'data' in item:
+        #         continue
+        #     if not 'useType' in item['data'] or not 'organizationLevel1' in item['data']:
+        #         continue
+        #     for modelling in item['modellingUnits']:
+        #         b_dic={"modellingunit":modelling, "type": item['data']['useType'], "organization":item['data']['organizationLevel1']}
+        #         buildings_list.append(b_dic)
+        # cursor.close()
+        #
+        # buildings_df = pd.DataFrame.from_records(buildings_list)
+        # f_station = NamedTemporaryFile(delete=False, suffix='.csv')
+        # buildings_df.to_csv(f_station.name, header=None, index=None)
+        # call(["hadoop", "fs", "-mkdir", "-p", f_station.name, self.config['paths']['building_info']])
+        # call(["hadoop", "fs", "-copyFromLocal", f_station.name, self.config['paths']['building_info']])
+        # building_table = create_hive_module_input_table(self.hive, self.config['hive']['building_info_table'],
+        #                                                 self.config['paths']['building_info'],
+        #                                                 [('modellingunit', 'string'), ('type', 'string'),('organization','string')],
+        #                                                 self.task_UUID, sep=",")
+        #self.context.add_clean_hive_tables(building_table)
+
         # TODO: Input is calculated on demand
         # location = "/tmp/edinet_comparison/{UUID}/output_monthly".format(UUID="83080a83bc0f43d6871ed8a7220e7921")
-        # aggregated_table = "edinet_monthly_aggregation_83080a83bc0f43d6871ed8a7220e7921"
+        aggregated_table = "edinet_monthly_aggregation_83080a83bc0f43d6871ed8a7220e7921"
+        building_table = "edinet_building_info_0c72b162780a4f9eb22eacf35dcc388d"
+        self.logger.debug('creating hive query to join data with information')
+        qbr = RawQueryBuilder(self.hive)
+        location = self.config['paths']['benchmarking_data']
+        benchmarking_field = self.config['hive']['benchmarking_table_fields']
+        benchmarking_table = create_hive_module_input_table(self.hive, self.config['hive']['benchmarking_table'],
+                                                    location, benchmarking_field, self.task_UUID)
 
-        self.logger.debug('creating benchmarking information table')
-        building_collection = self.config['mongodb']['buildings_collection']
-        cursor = self.mongo[building_collection].find({})
-        buildings_list = []
-        for item in cursor :
-            if not 'modellingUnits' in item or not 'data' in item:
-                continue
-            if not 'useType' in item['data'] or not 'organizationLevel1' in item['data']:
-                continue
-            for modelling in item['modellingUnits']:
-                b_dic={"modellingunit":modelling, "type": item['data']['useType'], "organization":item['data']['organizationLevel1']}
-                buildings_list.append(b_dic)
-        cursor.close()
-
-        buildings_df = pd.DataFrame.from_records(buildings_list)
-        f_station = NamedTemporaryFile(delete=False, suffix='.csv')
-        buildings_df.to_csv(f_station.name, header=None, index=None)
-        call(["hadoop", "fs", "-mkdir", "-p", f_station.name, self.config['paths']['building_info']])
-        call(["hadoop", "fs", "-copyFromLocal", f_station.name, self.config['paths']['building_info']])
-        building_table = create_hive_module_input_table(self.hive, self.config['hive']['building_info_table'],
-                                                        self.config['paths']['building_info'],
-                                                        [('modellingunit', 'string'), ('type', 'string'),('organization','string')],
-                                                        self.task_UUID, sep=",")
-        #self.context.add_clean_hive_tables(building_table)
+        total_select_joint = ", ".join(["{}.{}".format(x[2], x[0]) for x in benchmarking_field])
+        sentence = """
+           INSERT OVERWRITE TABLE {input_table}
+           SELECT {total_select_joint} FROM
+               SELECT * FROM {aggregated_table} a
+               JOIN {building_table} b on a.modellingUnit==b.modellingUnit
+               """.format(input_table=benchmarking_table, total_select_joint=total_select_joint,
+                          aggregated_table=aggregated_table, building_table=building_table)
+        self.logger.debug(sentence)
+        qbr.execute_query(sentence)
 
         # try:
         #     # Launch MapReduce job
