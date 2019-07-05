@@ -41,10 +41,11 @@ class MRJob_benchmarking(MRJob):
         # obtain the needed info from the key
         criteria_values, energy_type, month, criteria = key.split('~')
         df = pd.DataFrame.from_records(values)
+        df.values = pd.to_numeric(df.values, errors='coerce')
         if len(df) < int(self.config['settings']['min_elements_benchmarking']):
             return
         breaks = self.config['settings']['breaks']
-        comparation_results = {"quantile_{}".format(b):np.percentile(df.value, b) for b in breaks}
+        comparation_results = {"quantile_{}".format(b):np.nanpercentile(df.value, b) for b in breaks}
 
         mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
         mongo[self.config['mongodb']['db']].authenticate(
