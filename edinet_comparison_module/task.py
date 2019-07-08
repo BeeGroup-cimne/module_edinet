@@ -128,19 +128,37 @@ class ComparisonModule(BeeModule3):
         modelling_units_collection = self.config['mongodb']['modelling_units_collection']
         cursor = self.mongo[modelling_units_collection].find({})
         device_key = {}
+
+        def get_building(modelling_unit, mongo, building_collection, reporting_collection):
+            building = mongo[building_collection].find_one({"modellingUnits": modelling_unit})
+            if not building:
+                reporting = mongo[reporting_collection].find_one({"modelling_Units": modelling_unit})
+                building = mongo[building_collection].find_one({"buildingId": reporting['reportingUnitId']})
+            if not building:
+                return None
+            return building
+        building_collection = self.config['mongodb']['buildings_collection']
+        reporting_collection = self.config['mongodb']['reporting_collection']
+
         for item in cursor :
-            if len(item['devices']) > 0:  # to avoid empty list of devices
+            building = get_building(item['modellingUnitId'], self.mongo, building_collection, reporting_collection)
+            if 'data' in building and 'areaBuild' in building['data']:
+                surface = building["data"]["areaBuild"]
+            else:
+                surface = None
+            if len(item['devices']) > 0 and surface:  # to avoid empty list of devices
                 for dev in item['devices']:
-                    key_str = "{modelling}~{devices}".format(
+                    key_str = "{modelling}~{devices}~{area}".format(
                         modelling=item['modellingUnitId'],
                         devices=item['devices'],
+                        area = surface
                     )
                     if dev['deviceId'] in device_key.keys():
                         device_key[dev['deviceId']].append(key_str)
                     else:
                         device_key[dev['deviceId']] = [key_str]
         cursor.close()
-
+        cursor = self.mongo[modelling_units_collection].find({})
         self.logger.info('A mongo query process has loaded {} devices'.format(len(device_key.keys())))
 
         ######################################################################################################################################################################################

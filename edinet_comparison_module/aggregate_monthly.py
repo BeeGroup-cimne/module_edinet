@@ -61,7 +61,7 @@ class MRJob_aggregate(MRJob):
 
     def reducer(self, key, values):
         # obtain the needed info from the key
-        modelling_unit, multipliers = key.split('~')
+        modelling_unit, multipliers, area = key.split('~')
         multipliers = ast.literal_eval(multipliers)  # string to dict
         multiplier = {}
         for i in multipliers:
@@ -84,6 +84,7 @@ class MRJob_aggregate(MRJob):
         df_new_daily = df_new_daily.sort_index()
         df_value = df_new_daily[['value']].resample('M').mean()
         df_value['days'] = df_new_daily[['value']].resample('M').count()
+        df_value['value'] = df_value['value']/area
         mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
         mongo[self.config['mongodb']['db']].authenticate(
             self.config['mongodb']['username'],

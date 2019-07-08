@@ -181,10 +181,7 @@ if __name__ == "__main__":
     """
 from module_edinet.edinet_baseline_monthly_module.task import BaselineModule
 from datetime import datetime
-params = {
-   'result_companyId': 1092915978,
-    'ts_to': datetime(2019, 5, 1, 23, 59, 59)
-}
+params = {'result_companyId': 1092915978,'ts_to': datetime(2018, 4, 30, 23, 59, 59)}
 t = BaselineModule()
 t.run(params) 
 
