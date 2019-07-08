@@ -152,7 +152,7 @@ class BaselineModule(BeeModule2):
                     ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
                     ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss")) a
                 JOIN {device_stations} b on a.deviceId==b.deviceId
-                JOIN (SELECT a2.stationid, AVG(a2.temperature) as temp, UNIX_TIMESTAMP(TO_DATE(FROM_UNIXTIME(a2.ts)), "yyyy-MM-dd") as time FROM edinet_meteo a2 GROUP BY TO_DATE(FROM_UNIXTIME(a2.ts)), a2.stationid) c on b.stationId==c.stationId and a.ts==c.time
+                JOIN (SELECT a2.stationid, AVG(a2.temperature) as temp, UNIX_TIMESTAMP(TO_DATE(FROM_UNIXTIME(a2.ts)), "yyyy-MM-dd") as ts FROM edinet_meteo a2 GROUP BY TO_DATE(FROM_UNIXTIME(a2.ts)), a2.stationid) c on b.stationId==c.stationId and a.ts==c.ts
             """.format(input_table=input_table, ts_from=ts_from, ts_to=ts_to, device_stations=device_stations)
 
         self.logger.debug(sentence)
