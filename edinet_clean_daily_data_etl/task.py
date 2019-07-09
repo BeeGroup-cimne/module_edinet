@@ -112,7 +112,7 @@ class ETL_clean_daily(BeeModule2):
                         columns = measure_config['hbase_columns']
                         temp_table = create_hive_table_from_hbase_table(self.hive, table_name, table_name, keys, columns, self.task_UUID)
                         tables.append(temp_table)
-                        self.context.add_clean_hive_tables(temp_table)
+                        #self.context.add_clean_hive_tables(temp_table)
                         tables_energyType.append(energyType)
                         tables_source.append(companyId)
                         self.logger.debug("Created table: {}".format(temp_table))
