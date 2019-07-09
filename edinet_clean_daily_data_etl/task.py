@@ -139,10 +139,14 @@ class ETL_clean_daily(BeeModule2):
                 var = letter[index]
                 energy_type = tables_energyType[index]
                 source = tables_source[index]
+                self.logger.debug("preparing the {}".format(var))
                 select = ", ".join([f[1] for f in measure_config["sql_sentence_select"]]).format(var=var,
                                                                                                  energy_type=energy_type,
                                                                                                  source=source)
+                self.logger.debug(select)
+
                 where = measure_config["sql_where_select"].format(var=var, ts_from=ts_from, ts_to=ts_to)
+                self.logger.debug(where)
 
                 text.append(""" SELECT {select} FROM {tab} {var}
                                   WHERE
