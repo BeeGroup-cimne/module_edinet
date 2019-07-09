@@ -66,9 +66,9 @@ class ETL_clean_hourly(BeeModule2):
         """CHECK INCONSISTENCIES IN params"""
         try:
             result_companyId = params['result_companyId']
-            data_companyId = params['data_companyId']
+            data_companyId = params['data_companyId'] if 'data_companyId' in params else []
             ts_to = params['ts_to']
-            ts_from = params['ts_from'] if 'ts_from' in params else date_n_month(ts_to, -24)
+            ts_from = params['ts_from'] if 'ts_from' in params else date_n_month(ts_to, -48)
             energyTypeList = params['type'] if 'type' in params else []
         except KeyError as e:
             raise Exception('Mandatory Parameter not provided: {}'.format(e))
@@ -80,6 +80,9 @@ class ETL_clean_hourly(BeeModule2):
         if not energyTypeList:
             energyTypeList = list(set([x['type'] for x in self.mongo['readings'].find({},{'type':1})]))
 
+        if not data_companyId:
+            data_companyId = list(set([x['companyId'] for x in self.mongo['companies'].find({}, {'companyId': 1})]))
+
         ######################################################################################################################################################################################
         """ HIVE QUERY TO GET HBASE DATA """
         ######################################################################################################################################################################################
@@ -90,10 +93,14 @@ class ETL_clean_hourly(BeeModule2):
             tables_source = []
             tables_energyType = []
             self.logger.info('creating {} tables for {} and {}'.format(type_table_name, energyTypeList, data_companyId))
+
+            tables_list = self.hbase.tables()
             for energyType in energyTypeList:
                 for companyId in data_companyId:
                     try:
                         table_name = "{}_{}_{}".format(type_table_name, energyType, companyId)
+                        if table_name not in tables_list:
+                            continue
                         keys = measure_config['hbase_keys']
                         columns = measure_config['hbase_columns']
                         temp_table = create_hive_table_from_hbase_table(self.hive, table_name, table_name, keys, columns, self.task_UUID)
@@ -218,8 +225,7 @@ from module_edinet.edinet_clean_hourly_data_etl.task import ETL_clean_hourly
 from datetime import datetime
 params = {
     "result_companyId": "1092915978",
-    "data_companyId": ["3230658933","1512441458"],
-    "ts_to": datetime(2018,12,01)
+    "ts_to": datetime(2019,7,9)
 }
 t = ETL_clean_hourly()
 t.run(params) 
