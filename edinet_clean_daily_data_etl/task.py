@@ -125,7 +125,6 @@ class ETL_clean_daily(BeeModule2):
 
             #add input table to be deleted after execution
             self.context.add_clean_hive_tables(input_table)
-            self.logger.debug("building query sentence")
             qbr = RawQueryBuilder(self.hive)
             select = ", ".join([f[0] for f in measure_config["sql_sentence_select"]])
             sentence = """
@@ -134,26 +133,19 @@ class ETL_clean_daily(BeeModule2):
                 ( """.format(select=select, input_table=input_table)
             letter = ["a{}".format(i) for i in range(len(tables) + 1)]
             text = []
-            self.logger.debug("preparing the qurey")
             for index, tab in enumerate(tables):
                 var = letter[index]
                 energy_type = tables_energyType[index]
                 source = tables_source[index]
-                self.logger.debug("preparing the {}".format(var))
                 select = ", ".join([f[1] for f in measure_config["sql_sentence_select"]]).format(var=var,
                                                                                                  energy_type=energy_type,
                                                                                                  source=source)
-                self.logger.debug(select)
-
                 where = measure_config["sql_where_select"].format(var=var, ts_from=ts_from, ts_to=ts_to)
-                self.logger.debug(where)
-
                 text.append(""" SELECT {select} FROM {tab} {var}
                                   WHERE
                                       {where}
                                   """.format(var=var, select=select, tab=tab,
                                              where=where))
-            self.logger.debug("query almost prepared")
             sentence += """UNION
                         """.join(text)
             sentence += """) unionResult """
