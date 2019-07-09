@@ -149,6 +149,7 @@ class ETL_clean_daily(BeeModule2):
                                       {where}
                                   """.format(var=var, select=select, tab=tab,
                                              where=where))
+            self.logger.debug("query almost prepared")
             sentence += """UNION
                         """.join(text)
             sentence += """) unionResult """
