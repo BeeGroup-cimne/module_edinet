@@ -104,6 +104,17 @@ class MRJob_clean_billing_data(MRJob):
                 df_etype_group = df_etype_group.sort_index()
                 df_etype_group['ts_ini'] = df_etype_group.index
                 # save billing information in raw_data
+                # raw_data = df_etype_group[["ts_ini", "ts_end", "value"]].to_dict('records')
+                # for r in raw_data:
+                #     r.update({"device": key, "source": source, "energy_type": etype, "data_type": "billing"})
+                #
+                # ops = [InsertOne(x) for x in raw_data]
+                #
+                # result = self.mongo['raw_data'].bulk_write([
+                #                                                DeleteMany({}),
+                #                                                # Remove all documents from the previous execution.
+                #                                            ] + ops
+                #                                            )
                 self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "billing"}, {'$set': {
                         "device": key, "source": source, "energy_type": etype, "companyId": self.companyId,
                         "raw_data":df_etype_group[["ts_ini","ts_end","value"]].to_dict('records')

@@ -205,7 +205,6 @@ if __name__ == "__main__":
 
     """
 from module_edinet.edinet_metering_measures_etl.task import ETL_mh_hadoop_tertiary
-from datetime import datetime
 params = {}
 t = ETL_mh_hadoop_tertiary()
 t.run(params) 

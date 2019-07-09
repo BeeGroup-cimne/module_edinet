@@ -73,7 +73,7 @@ class ETL_clean_daily(BeeModule2):
         """CHECK INCONSISTENCIES IN params"""
         try:
             result_companyId = params['result_companyId']
-            data_companyId = params['data_companyId']
+            data_companyId = params['data_companyId'] if 'data_companyId' in params else []
             ts_to = params['ts_to']
             ts_from = params['ts_from'] if 'ts_from' in params else date_n_month(ts_to, -24)
             energyTypeList = params['type'] if 'type' in params else []
@@ -86,6 +86,9 @@ class ETL_clean_daily(BeeModule2):
         ######################################################################################################################################################################################
         if not energyTypeList:
             energyTypeList = list(set([x['type'] for x in self.mongo['readings'].find({},{'type':1})]))
+
+        if not data_companyId:
+            data_companyId = list(set([x['companyId'] for x in self.mongo['companies'].find({},{'companyId':1})]))
 
         ######################################################################################################################################################################################
         """ HIVE QUERY TO GET HBASE DATA """
@@ -228,7 +231,7 @@ from datetime import datetime
 params = {
     "result_companyId": "1092915978",
     "data_companyId": ["3230658933","1512441458"],
-    "ts_to": datetime(2018,12,01)
+    "ts_to": datetime(2019,7,9)
 }
 t = ETL_clean_daily()
 t.run(params) 
