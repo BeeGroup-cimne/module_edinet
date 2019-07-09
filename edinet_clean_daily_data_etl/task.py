@@ -134,6 +134,7 @@ class ETL_clean_daily(BeeModule2):
                 ( """.format(select=select, input_table=input_table)
             letter = ''.join(chr(ord('a') + i) for i in range(len(tables) + 1))
             text = []
+            self.logger.debug("preparing the qurey")
             for index, tab in enumerate(tables):
                 var = letter[index]
                 energy_type = tables_energyType[index]
