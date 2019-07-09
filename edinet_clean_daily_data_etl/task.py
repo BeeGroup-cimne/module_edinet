@@ -100,10 +100,14 @@ class ETL_clean_daily(BeeModule2):
             tables_source = []
             tables_energyType = []
             self.logger.info('creating {} tables for {} and {}'.format(type_table_name, energyTypeList, data_companyId))
+
+            tables_list = self.hbase.tables()
             for energyType in energyTypeList:
                 for companyId in data_companyId:
                     try:
                         table_name = "{}_{}_{}".format(type_table_name, energyType, companyId)
+                        if table_name not in tables_list:
+                            continue
                         keys = measure_config['hbase_keys']
                         columns = measure_config['hbase_columns']
                         temp_table = create_hive_table_from_hbase_table(self.hive, table_name, table_name, keys, columns, self.task_UUID)
