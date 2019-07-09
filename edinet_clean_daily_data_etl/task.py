@@ -132,7 +132,7 @@ class ETL_clean_daily(BeeModule2):
                 INSERT OVERWRITE TABLE {input_table}
                 SELECT {select} FROM
                 ( """.format(select=select, input_table=input_table)
-            letter = ''.join(chr(ord('a') + i) for i in range(len(tables) + 1))
+            letter = ["a{}".format(i) for i in range(len(tables) + 1)]
             text = []
             self.logger.debug("preparing the qurey")
             for index, tab in enumerate(tables):
