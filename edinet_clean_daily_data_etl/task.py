@@ -75,7 +75,7 @@ class ETL_clean_daily(BeeModule2):
             result_companyId = params['result_companyId']
             data_companyId = params['data_companyId'] if 'data_companyId' in params else []
             ts_to = params['ts_to']
-            ts_from = params['ts_from'] if 'ts_from' in params else date_n_month(ts_to, -24)
+            ts_from = params['ts_from'] if 'ts_from' in params else date_n_month(ts_to, -96)
             energyTypeList = params['type'] if 'type' in params else []
         except KeyError as e:
             raise Exception('Mandatory Parameter not provided: {}'.format(e))
