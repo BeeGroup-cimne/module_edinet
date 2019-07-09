@@ -120,48 +120,47 @@ class ETL_clean_daily(BeeModule2):
                         self.logger.debug("Error creating table: {}".format(e))
             self.logger.debug(len(tables))
 
-        #
-        #     fields = measure_config["hive_fields"]
-        #
-        #     location = measure_config['measures'].format(UUID=self.task_UUID)
-        #     self.context.add_clean_hdfs_file(location)
-        #     input_table = create_hive_module_input_table(self.hive, measure_config['temp_input_table'],
-        #                                              location, fields, self.task_UUID)
-        #
-        #     #add input table to be deleted after execution
-        #     self.context.add_clean_hive_tables(input_table)
-        #     qbr = RawQueryBuilder(self.hive)
-        #     select = ", ".join([f[0] for f in measure_config["sql_sentence_select"]])
-        #     sentence = """
-        #         INSERT OVERWRITE TABLE {input_table}
-        #         SELECT {select} FROM
-        #         ( """.format(select=select, input_table=input_table)
-        #     letter = ["a{}".format(i) for i in range(len(tables) + 1)]
-        #     text = []
-        #     for index, tab in enumerate(tables):
-        #         var = letter[index]
-        #         energy_type = tables_energyType[index]
-        #         source = tables_source[index]
-        #         select = ", ".join([f[1] for f in measure_config["sql_sentence_select"]]).format(var=var,
-        #                                                                                          energy_type=energy_type,
-        #                                                                                          source=source)
-        #         where = measure_config["sql_where_select"].format(var=var, ts_from=ts_from, ts_to=ts_to)
-        #         text.append(""" SELECT {select} FROM {tab} {var}
-        #                           WHERE
-        #                               {where}
-        #                           """.format(var=var, select=select, tab=tab,
-        #                                      where=where))
-        #     sentence += """UNION
-        #                 """.join(text)
-        #     sentence += """) unionResult """
-        #
-        #     self.logger.debug(sentence)
-        #     try:
-        #         qbr.execute_query(sentence)
-        #     except:
-        #         continue
-        #
-        # ######################################################################################################################################################################################
+            fields = measure_config["hive_fields"]
+
+            location = measure_config['measures'].format(UUID=self.task_UUID)
+            #self.context.add_clean_hdfs_file(location)
+            input_table = create_hive_module_input_table(self.hive, measure_config['temp_input_table'],
+                                                     location, fields, self.task_UUID)
+
+            #add input table to be deleted after execution
+            #self.context.add_clean_hive_tables(input_table)
+            qbr = RawQueryBuilder(self.hive)
+            select = ", ".join([f[0] for f in measure_config["sql_sentence_select"]])
+            sentence = """
+                INSERT OVERWRITE TABLE {input_table}
+                SELECT {select} FROM
+                ( """.format(select=select, input_table=input_table)
+            letter = ["a{}".format(i) for i in range(len(tables) + 1)]
+            text = []
+            for index, tab in enumerate(tables):
+                var = letter[index]
+                energy_type = tables_energyType[index]
+                source = tables_source[index]
+                select = ", ".join([f[1] for f in measure_config["sql_sentence_select"]]).format(var=var,
+                                                                                                 energy_type=energy_type,
+                                                                                                 source=source)
+                where = measure_config["sql_where_select"].format(var=var, ts_from=ts_from, ts_to=ts_to)
+                text.append(""" SELECT {select} FROM {tab} {var}
+                                  WHERE
+                                      {where}
+                                  """.format(var=var, select=select, tab=tab,
+                                             where=where))
+            sentence += """UNION
+                        """.join(text)
+            sentence += """) unionResult """
+
+            self.logger.debug(sentence)
+            try:
+                qbr.execute_query(sentence)
+            except:
+                continue
+
+        ######################################################################################################################################################################################
         # """ SETUP MAP REDUCE JOB """
         # ######################################################################################################################################################################################
         # output_fields = self.config['output']['fields']
