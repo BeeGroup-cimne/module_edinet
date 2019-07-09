@@ -128,7 +128,7 @@ class ETL_clean_hourly(BeeModule2):
                 INSERT OVERWRITE TABLE {input_table}
                 SELECT {select} FROM
                 ( """.format(select=select, input_table=input_table)
-            letter = ''.join(chr(ord('a') + i) for i in range(len(tables) + 1))
+            letter = ["a{}".format(i) for i in range(len(tables) + 1)]
             text = []
             for index, tab in enumerate(tables):
                 var = letter[index]
@@ -195,7 +195,7 @@ class ETL_clean_hourly(BeeModule2):
                         INSERT OVERWRITE TABLE {output_table}
                         SELECT {select} FROM
                         ( """.format(select=select, output_table=output_hive_table)
-        letter = ''.join(chr(ord('a') + i) for i in range(len(clean_tables) + 1))
+        letter = ["a{}".format(i) for i in range(len(clean_tables) + 1)]
         text = []
         for index, tab in enumerate(clean_tables):
             var = letter[index]
