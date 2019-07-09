@@ -125,6 +125,7 @@ class ETL_clean_daily(BeeModule2):
 
             #add input table to be deleted after execution
             self.context.add_clean_hive_tables(input_table)
+            self.logger.debug("building query sentence")
             qbr = RawQueryBuilder(self.hive)
             select = ", ".join([f[0] for f in measure_config["sql_sentence_select"]])
             sentence = """
@@ -230,7 +231,6 @@ from module_edinet.edinet_clean_daily_data_etl.task import ETL_clean_daily
 from datetime import datetime
 params = {
     "result_companyId": "1092915978",
-    "data_companyId": ["3230658933","1512441458"],
     "ts_to": datetime(2019,7,9)
 }
 t = ETL_clean_daily()
