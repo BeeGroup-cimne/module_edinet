@@ -140,7 +140,8 @@ class ComparisonModule(BeeModule3):
         building_collection = self.config['mongodb']['buildings_collection']
         reporting_collection = self.config['mongodb']['reporting_collection']
         self.logger.debug("generating the device_key dict")
-        for item in cursor :
+        for item in cursor:
+            self.logger.debug(item)
             building = get_building(item['modellingUnitId'], self.mongo, building_collection, reporting_collection)
             if building and 'data' in building and 'areaBuild' in building['data']:
                 surface = building["data"]["areaBuild"]
