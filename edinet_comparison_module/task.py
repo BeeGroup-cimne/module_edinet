@@ -133,7 +133,8 @@ class ComparisonModule(BeeModule3):
             building = mongo[building_collection].find_one({"modellingUnits": modelling_unit})
             if not building:
                 reporting = mongo[reporting_collection].find_one({"modelling_Units": modelling_unit})
-                building = mongo[building_collection].find_one({"buildingId": reporting['reportingUnitId']})
+                if reporting and "reportingUnitId" in reporting:
+                    building = mongo[building_collection].find_one({"buildingId": reporting['reportingUnitId']})
             if not building:
                 return None
             return building
@@ -141,16 +142,16 @@ class ComparisonModule(BeeModule3):
         reporting_collection = self.config['mongodb']['reporting_collection']
         self.logger.debug("generating the device_key dict")
         for item in cursor:
-            self.logger.debug(item)
-            self.logger.debug("gettinng item building {}".format(item['modellingUnitId']))
+            #self.logger.debug(item)
+            #self.logger.debug("gettinng item building {}".format(item['modellingUnitId']))
             building = get_building(item['modellingUnitId'], self.mongo, building_collection, reporting_collection)
-            self.logger.debug("obtained building {}".format(building))
+            #self.logger.debug("obtained building {}".format(building))
 
             if building and 'data' in building and 'areaBuild' in building['data']:
                 surface = building["data"]["areaBuild"]
             else:
                 surface = None
-            self.logger.debug("area of building: {}".format(surface))
+            #self.logger.debug("area of building: {}".format(surface))
             if len(item['devices']) > 0 and surface:  # to avoid empty list of devices
                 self.logger.debug("list of devices {}".format(item['devices']))
                 for dev in item['devices']:
@@ -163,7 +164,7 @@ class ComparisonModule(BeeModule3):
                         device_key[dev['deviceId']].append(key_str)
                     else:
                         device_key[dev['deviceId']] = [key_str]
-            self.logger.debug("finished for {}".format(item['modellingUnitId']))
+            #self.logger.debug("finished for {}".format(item['modellingUnitId']))
         cursor.close()
         self.logger.info('A mongo query process has loaded {} devices'.format(len(device_key.keys())))
 
