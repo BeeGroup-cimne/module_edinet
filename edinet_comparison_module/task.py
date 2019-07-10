@@ -139,10 +139,10 @@ class ComparisonModule(BeeModule3):
             return building
         building_collection = self.config['mongodb']['buildings_collection']
         reporting_collection = self.config['mongodb']['reporting_collection']
-
+        self.logger.debug("generating the device_key dict")
         for item in cursor :
             building = get_building(item['modellingUnitId'], self.mongo, building_collection, reporting_collection)
-            if 'data' in building and 'areaBuild' in building['data']:
+            if building and 'data' in building and 'areaBuild' in building['data']:
                 surface = building["data"]["areaBuild"]
             else:
                 surface = None
@@ -158,7 +158,6 @@ class ComparisonModule(BeeModule3):
                     else:
                         device_key[dev['deviceId']] = [key_str]
         cursor.close()
-        cursor = self.mongo[modelling_units_collection].find({})
         self.logger.info('A mongo query process has loaded {} devices'.format(len(device_key.keys())))
 
         ######################################################################################################################################################################################
@@ -280,7 +279,7 @@ if __name__ == "__main__":
     """
 from module_edinet.edinet_comparison_module.task import ComparisonModule
 from datetime import datetime
-params = {'result_companyId': 1092915978,'ts_to': datetime(2018, 4, 30, 23, 59, 59)}
+params = {'result_companyId': 1092915978,'ts_to': datetime(2019,7,9)}
 t = ComparisonModule()
 t.run(params) 
     """
