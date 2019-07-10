@@ -147,6 +147,7 @@ class ComparisonModule(BeeModule3):
             else:
                 surface = None
             self.logger.debug(surface)
+            self.logger.debug(item)
             if len(item['devices']) > 0 and surface:  # to avoid empty list of devices
                 for dev in item['devices']:
                     key_str = "{modelling}~{devices}~{area}".format(
