@@ -160,7 +160,7 @@ class ETL_clean_meteo(BeeModule2):
                         INSERT OVERWRITE TABLE {output_table}
                         SELECT {select} FROM
                         ( """.format(select=select, output_table=output_hive_table)
-        letter = ''.join(chr(ord('a') + i) for i in range(len(clean_tables) + 1))
+        letter = ["a{}".format(i) for i in range(len(clean_tables) + 1)]
         text = []
         for index, tab in enumerate(clean_tables):
             var = letter[index]
