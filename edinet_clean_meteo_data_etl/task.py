@@ -67,7 +67,7 @@ class ETL_clean_meteo(BeeModule2):
         try:
             result_companyId = params['result_companyId']
             ts_to = params['ts_to']
-            ts_from = params['ts_from'] if 'ts_from' in params else date_n_month(ts_to, -24)
+            ts_from = params['ts_from'] if 'ts_from' in params else date_n_month(ts_to, -96)
         except KeyError as e:
             raise Exception('Mandatory Parameter not provided: {}'.format(e))
 
@@ -192,7 +192,7 @@ from module_edinet.edinet_clean_meteo_data_etl.task import ETL_clean_meteo
 from datetime import datetime
 params = {
     "result_companyId": "1092915978",
-    "ts_to": datetime(2018,12,01)
+    "ts_to": datetime(2019,7,9)
 }
 t = ETL_clean_meteo()
 t.run(params) 
