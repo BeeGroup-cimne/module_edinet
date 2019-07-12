@@ -94,6 +94,7 @@ class MRJob_aggregate(MRJob):
         mongo[self.config['mongodb']['db']][self.config['mongodb']['montly_data_collection']].replace_one({
             "modellingUnitId": modelling_unit}, {
             "modellingUnitId": modelling_unit,
+            "companyId": self.company,
             "df": df_value.reset_index().to_dict('records'),
         }, upsert=True)
         mongo.close()

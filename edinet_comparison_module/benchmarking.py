@@ -62,6 +62,7 @@ class MRJob_benchmarking(MRJob):
             },
             {
                 "criteria": criteria,
+                "companyId": self.company,
                 "criteria_values": criteria_values,
                 "energyType":energy_type,
                 "month": month,
