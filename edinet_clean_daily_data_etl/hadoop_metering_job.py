@@ -9,7 +9,7 @@ import glob
 from json import load
 import pandas as pd
 import numpy as np
-from pymongo import MongoClient
+from pymongo import MongoClient, InsertOne, DeleteMany
 import bee_data_cleaning as dc
 
 
@@ -103,16 +103,30 @@ class MRJob_clean_metering_data(MRJob):
                 df_etype_group = df_etype_group.sort_index()
                 df_etype_group['ts'] = df_etype_group.index
                 # save billing information in raw_data
-                self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering"}, { "$set" : {
-                        "device": key, "source": source, "energy_type": etype, "companyId": self.companyId,
-                        "raw_data":df_etype_group[["ts","value","accumulated"]].to_dict('records')
-                    }
-                }, upsert=True)
+                # save billing information in raw_data
+                raw_data = df_etype_group[["ts","value","accumulated"]].to_dict('records')
+                for r in raw_data:
+                    r.update(
+                        {"device": key, "source": source, "energy_type": etype, "data_type": "metering", "freq": "D"})
 
-                self.mongo['raw_data'].update(
-                    {"device": key, "source": source, "energy_type": etype, "data_type": "metering"},
-                    {"$unset": {"errors": 1}},
-                    upsert=True)
+                ops = [InsertOne(x) for x in raw_data]
+                result = self.mongo['raw_data'].bulk_write(
+                    [
+                        DeleteMany({"device": key, "source": source, "energy_type": etype, "data_type": "metering",
+                                    "freq": "D"}),
+                    ] + ops
+                )
+
+                # self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering"}, { "$set" : {
+                #         "device": key, "source": source, "energy_type": etype, "companyId": self.companyId,
+                #         "raw_data":df_etype_group[["ts","value","accumulated"]].to_dict('records')
+                #     }
+                # }, upsert=True)
+
+                # self.mongo['raw_data'].update(
+                #     {"device": key, "source": source, "energy_type": etype, "data_type": "metering"},
+                #     {"$unset": {"errors": 1}},
+                #     upsert=True)
                 # check if metering is acumulated or instant:
                 duplicated_index = df_etype_group.index.duplicated(keep='last')
                 duplicated_values = df_etype_group[duplicated_index].index.values.tolist()
@@ -120,7 +134,7 @@ class MRJob_clean_metering_data(MRJob):
 
                 freq = calculate_frequency(df_etype_group)
                 if not freq:
-                    self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering"}, {"$set": {
+                    self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering", "freq": "D"}, {"$set": {
                         "errors": "can't infere frequency"
                     }
                     }, upsert=True)
@@ -145,7 +159,7 @@ class MRJob_clean_metering_data(MRJob):
                         df_etype_group.value = df_etype_group.value.cumsum()
                         df_etype_group = df_etype_group.resample("D").interpolate().diff(1,0)
                 else:
-                    self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering"}, {"$set": {
+                    self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering", "freq": "D"}, {"$set": {
                         "errors" : "device with accumulated and instant values at the same metering"
                         }
                     }, upsert=True)
@@ -165,18 +179,43 @@ class MRJob_clean_metering_data(MRJob):
                 znorm_outliers = list(df_etype_group[znorm_bool].index)
                 missing_values = list(df_etype_group[df_etype_group.value.isnull()].index)
 
-                self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering"},
-                                                {"$set":
-                                                   {
-                                                    "clean_data": df_etype_group[['ts','value']].to_dict('records'),
-                                                    "negative_values": negative_outliers,
-                                                    "znorm_outliers": znorm_outliers,
-                                                    "max_outliers": max_outliers,
-                                                    "gaps": missing_values,
-                                                    "frequency": freq.resolution,
-                                                    "duplicated_values": duplicated_values
-                                                   }
-                                                }, upsert=True)
+                clean_data = df_etype_group[['ts','value']].to_dict('records')
+                for r in clean_data:
+                    r.update(
+                        {"device": key, "source": source, "energy_type": etype, "data_type": "metering", "freq": "D"})
+
+                ops = [InsertOne(x) for x in clean_data]
+                result = self.mongo['clean_data'].bulk_write(
+                    [
+                        DeleteMany({"device": key, "source": source, "energy_type": etype, "data_type": "metering", "freq": "D"}),
+                    ] + ops
+                )
+
+                self.mongo['data_quality'].update(
+                    {"device": key, "source": source, "energy_type": etype, "data_type": "metering", "freq": "D"},
+                    {"$set":
+                        {
+                            "duplicated_values": duplicated_values,
+                            "frequency": freq.resolution,
+                            "gaps": missing_values,
+                            "negative_values": negative_outliers,
+                            "znorm_outliers": znorm_outliers,
+                            "max_outliers": max_outliers}
+                    }, upsert=True)
+
+                #
+                # self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering"},
+                #                                 {"$set":
+                #                                    {
+                #                                     "clean_data": df_etype_group[['ts','value']].to_dict('records'),
+                #                                     "negative_values": negative_outliers,
+                #                                     "znorm_outliers": znorm_outliers,
+                #                                     "max_outliers": max_outliers,
+                #                                     "gaps": missing_values,
+                #                                     "frequency": freq.resolution,
+                #                                     "duplicated_values": duplicated_values
+                #                                    }
+                #                                 }, upsert=True)
 
                 for row in df_etype_group.iterrows():
                     yield None, "\t".join([str(row[1]['ts'].timestamp()), key, str(row[1]['value']), etype, source])

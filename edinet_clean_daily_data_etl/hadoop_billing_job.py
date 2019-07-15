@@ -8,7 +8,7 @@ from mrjob.protocol import PickleProtocol
 import glob
 from json import load
 import pandas as pd
-from pymongo import MongoClient
+from pymongo import MongoClient, DeleteMany, InsertOne
 import bee_data_cleaning as dc
 
 
@@ -29,7 +29,7 @@ class MRJob_clean_billing_data(MRJob):
     OUTPUT_PROTOCOL = TSVProtocol
 
     def mapper_init(self):
-        
+
         # recover json configuration uploaded with script
         fn = glob.glob('*.json')
         self.config = load(open(fn[0]))
@@ -104,23 +104,22 @@ class MRJob_clean_billing_data(MRJob):
                 df_etype_group = df_etype_group.sort_index()
                 df_etype_group['ts_ini'] = df_etype_group.index
                 # save billing information in raw_data
-                # raw_data = df_etype_group[["ts_ini", "ts_end", "value"]].to_dict('records')
-                # for r in raw_data:
-                #     r.update({"device": key, "source": source, "energy_type": etype, "data_type": "billing"})
-                #
-                # ops = [InsertOne(x) for x in raw_data]
-                #
-                # result = self.mongo['raw_data'].bulk_write([
-                #                                                DeleteMany({}),
-                #                                                # Remove all documents from the previous execution.
-                #                                            ] + ops
-                #                                            )
-                self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "billing"}, {'$set': {
-                        "device": key, "source": source, "energy_type": etype, "companyId": self.companyId,
-                        "raw_data":df_etype_group[["ts_ini","ts_end","value"]].to_dict('records')
-                    }
-                }, upsert=True)
-                # generate daily dataframe dividing by days:
+                raw_data = df_etype_group[["ts_ini", "ts_end", "value"]].to_dict('records')
+                for r in raw_data:
+                     r.update({"device": key, "source": source, "energy_type": etype, "data_type": "billing", "freq": "D"})
+
+                ops = [InsertOne(x) for x in raw_data]
+                result = self.mongo['raw_data'].bulk_write(
+                    [
+                        DeleteMany({"device": key, "source": source, "energy_type": etype, "data_type": "billing", "freq": "D"}),
+                    ] + ops
+                )
+                # self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "billing"}, {'$set': {
+                #         "device": key, "source": source, "energy_type": etype, "companyId": self.companyId,
+                #         "raw_data":df_etype_group[["ts_ini","ts_end","value"]].to_dict('records')
+                #     }
+                # }, upsert=True)
+                # # generate daily dataframe dividing by days:
                 dfs = []
                 for row in df_etype_group.iterrows():
                     index = pd.date_range(row[1]['ts_ini'], row[1]['ts_end'])
@@ -157,11 +156,21 @@ class MRJob_clean_billing_data(MRJob):
                 negative_outliers = list(global_df[negative_values_bool].index)
                 znorm_outliers = list(global_df[znorm_bool].index)
 
-                self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "billing"},
+                clean_data = global_df.to_dict('records'),
+                for r in clean_data:
+                     r.update({"device": key, "source": source, "energy_type": etype, "data_type": "billing", "freq": "D"})
+
+                ops = [InsertOne(x) for x in clean_data]
+                result = self.mongo['clean_data'].bulk_write(
+                    [
+                        DeleteMany({"device": key, "source": source, "energy_type": etype, "data_type": "billing", "freq": "D"}),
+                    ] + ops
+                )
+
+                self.mongo['data_quality'].update({"device": key, "source": source, "energy_type": etype, "data_type": "billing", "freq": "D"},
                                                 {"$set":
                                                    {
-                                                    "overlapings_billing" : overlappings,
-                                                    "clean_data": global_df.to_dict('records'),
+                                                    "overlapings" : overlappings,
                                                     "gaps": gaps,
                                                     "negative_values": negative_outliers,
                                                     "znorm_outliers": znorm_outliers,
