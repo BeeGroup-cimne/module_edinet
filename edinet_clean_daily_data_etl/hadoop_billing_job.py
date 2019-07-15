@@ -106,7 +106,7 @@ class MRJob_clean_billing_data(MRJob):
                 # save billing information in raw_data
                 raw_data = df_etype_group[["ts_ini", "ts_end", "value"]].to_dict('records')
                 for r in raw_data:
-                     r.update({"device": key, "source": source, "energy_type": etype, "data_type": "billing", "freq": "D"})
+                    r.update({"device": key, "source": source, "energy_type": etype, "data_type": "billing", "freq": "D"})
 
                 ops = [InsertOne(x) for x in raw_data]
                 result = self.mongo['raw_data'].bulk_write(
@@ -156,9 +156,9 @@ class MRJob_clean_billing_data(MRJob):
                 negative_outliers = list(global_df[negative_values_bool].index)
                 znorm_outliers = list(global_df[znorm_bool].index)
 
-                clean_data = global_df.to_dict('records'),
+                clean_data = global_df.to_dict('records')
                 for r in clean_data:
-                     r.update({"device": key, "source": source, "energy_type": etype, "data_type": "billing", "freq": "D"})
+                    r.update({"device": key, "source": source, "energy_type": etype, "data_type": "billing", "freq": "D"})
 
                 ops = [InsertOne(x) for x in clean_data]
                 result = self.mongo['clean_data'].bulk_write(
