@@ -130,6 +130,7 @@ class MRJob_clean_metering_data(MRJob):
                 #     {"$unset": {"errors": 1}},
                 #     upsert=True)
                 # # check if metering is acumulated or instant:
+                self.increment_counter("Job", "Raw_Data", amount=1)
                 duplicated_index = df_etype_group.index.duplicated(keep='last')
                 duplicated_values = df_etype_group[duplicated_index].index.values.tolist()
                 df_etype_group = df_etype_group[~duplicated_index]
@@ -183,6 +184,7 @@ class MRJob_clean_metering_data(MRJob):
                 negative_outliers = list(df_etype_group[negative_values_bool].index)
                 znorm_outliers = list(df_etype_group[znorm_bool].index)
                 missing_values = list(df_etype_group[df_etype_group.value.isnull()].index)
+                self.increment_counter("Job", "CleanData", amount=1)
                 clean_data = df_etype_group[['ts','value']].to_dict('records')
                 for r in clean_data:
                     r.update(
