@@ -164,7 +164,6 @@ class ETL_clean_daily(BeeModule2):
         """ SETUP MAP REDUCE JOB """
         ######################################################################################################################################################################################
         # remove previous raw_data results
-        self.mongo['raw_data'].delete_many({})
         output_fields = self.config['output']['fields']
         clean_tables = []
         for measure_config in self.config['measures']:

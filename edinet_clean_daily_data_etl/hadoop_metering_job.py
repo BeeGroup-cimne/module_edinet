@@ -134,7 +134,7 @@ class MRJob_clean_metering_data(MRJob):
 
                 freq = calculate_frequency(df_etype_group)
                 if not freq:
-                    self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering", "freq": "D"}, {"$set": {
+                    self.mongo['clean_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering", "freq": "D"}, {"$set": {
                         "errors": "can't infere frequency"
                     }
                     }, upsert=True)
@@ -159,7 +159,7 @@ class MRJob_clean_metering_data(MRJob):
                         df_etype_group.value = df_etype_group.value.cumsum()
                         df_etype_group = df_etype_group.resample("D").interpolate().diff(1,0)
                 else:
-                    self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering", "freq": "D"}, {"$set": {
+                    self.mongo['clean_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering", "freq": "D"}, {"$set": {
                         "errors" : "device with accumulated and instant values at the same metering"
                         }
                     }, upsert=True)
