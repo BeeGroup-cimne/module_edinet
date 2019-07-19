@@ -31,6 +31,7 @@ def billing_measures():
 			raise e
 
 def meteo_measures():
+	print("fiesta")
 	try:
 		from module_edinet.tasks import edinet_meteo_input_etl
 		params = {}
