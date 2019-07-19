@@ -10,7 +10,7 @@ date_from_monthly = date_to - relativedelta(years=4)
 # tasks definitions
 
 # UPLOAD DATA FROM MONGO TO HBASE
-def edinet_metering_measures():
+def metering_measures():
 	try:
 			from module_edinet.tasks import edinet_metering_measures_etl
 			params = {}
@@ -20,7 +20,7 @@ def edinet_metering_measures():
 			print(e)
 			raise e
 
-def edinet_billing_measures():
+def billing_measures():
 	try:
 			from module_edinet.tasks import edinet_billing_measures_etl
 			params = {}
@@ -30,7 +30,7 @@ def edinet_billing_measures():
 			print(e)
 			raise e
 
-def edinet_meteo_input():
+def meteo_measures():
 	try:
 		from module_edinet.tasks import edinet_meteo_input_etl
 		params = {}
