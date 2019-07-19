@@ -1,135 +1,142 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-date_to = datetime(2019,03,01)
+import sys
+from time import sleep
+
+# parameters
+date_to = datetime.now()
 date_from_hourly = date_to - relativedelta(years=2)
 date_from_monthly = date_to - relativedelta(years=4)
 # tasks definitions
-from time import sleep
-metering_measures, billing_measures, meteo_measures = None, None, None 
-
-#type_energy = ['electricityConsumption', 'gasConsumption' 'electricityReadings', 'unknownConsumption', 'unknownReadings', 'waterConsumption', 'monthlyElectricityConsumption']
 
 # UPLOAD DATA FROM MONGO TO HBASE
-try:
-        from module_edinet.tasks import edinet_metering_measures_etl
-        params = {}
-        metering_measures = edinet_metering_measures_etl.delay(params)
-except Exception as e:
-        print(e)
-	exit()
-try:
-        from module_edinet.tasks import edinet_billing_measures_etl
-        params = {}
-        billing_measures = edinet_billing_measures_etl.delay(params)
-except Exception as e:
-        print(e)
-	exit()
-try:
-	from module_edinet.tasks import edinet_meteo_input_etl
-	params = {}
-	meteo_measures = edinet_meteo_input_etl.delay(params)
-except Exception as e:
-	print(e)
-	exit()
+def edinet_metering_measures():
+	try:
+			from module_edinet.tasks import edinet_metering_measures_etl
+			params = {}
+			metering_measures = edinet_metering_measures_etl.delay(params)
+			return metering_measures.wait()
+	except Exception as e:
+			print(e)
+			raise e
+
+def edinet_billing_measures():
+	try:
+			from module_edinet.tasks import edinet_billing_measures_etl
+			params = {}
+			billing_measures = edinet_billing_measures_etl.delay(params)
+			return billing_measures.wait()
+	except Exception as e:
+			print(e)
+			raise e
+
+def edinet_meteo_input():
+	try:
+		from module_edinet.tasks import edinet_meteo_input_etl
+		params = {}
+		meteo_measures = edinet_meteo_input_etl.delay(params)
+		return meteo_measures.wait()
+	except Exception as e:
+		print(e)
+		raise e
+
 # CLEAN DATA
 
-clean_monthly, clean_hourly, clean_meteo = None, None, None
+def clean_hourly():
+	try:
+		from module_edinet.tasks import edinet_clean_hourly_data_etl
+		params = {
+			"result_companyId": "1092915978",
+			"ts_to": date_to,
+			"ts_from": date_from_hourly
+		}
+		clean_hourly = edinet_clean_hourly_data_etl.delay(params)
+		return clean_hourly.wait()
+	except Exception as e:
+		print(e)
+		raise e
 
-while True:
-	if metering_measures.ready() and clean_hourly is None :	
-		try:
-			from module_edinet.tasks import edinet_clean_hourly_data_etl
-			params = {
-            	"result_companyId": "1092915978",
-        		"data_companyId": ["1092915978", "3230658933", "5052736858", "7104124143", "8801761586"],
-        		"ts_to": date_to,
-				"ts_from": date_from_hourly
-       		}
-			clean_hourly = edinet_clean_hourly_data_etl.delay(params)
-		except Exception as e:
-			print(e)
-			exit()
-	if metering_measures.ready() and billing_measures.ready() and clean_monthly is None:	
-		try:
-			from module_edinet.tasks import edinet_clean_daily_data_etl
-			params = {
-				"result_companyId": "1092915978",
-                		"data_companyId": ["1092915978", "3230658933", "5052736858", "7104124143", "8801761586"],
-                		"ts_to": date_to,
-						"ts_from": date_from_monthly
-        		}
-			clean_monthly = edinet_clean_daily_data_etl.delay(params)
-		except Exception as e:
-			print(e)
-			exit()
-	if meteo_measures.ready() and clean_meteo is None:
-		try:
-			from module_edinet.tasks import edinet_clean_meteo_data_etl
-			meteo_date = min(date_from_hourly,date_from_monthly)
-			params = {
-				"result_companyId": "1092915978",
-				"ts_to": date_to,
-				"ts_from": meteo_date
+def clean_daily():
+	try:
+		from module_edinet.tasks import edinet_clean_daily_data_etl
+		params = {
+			"result_companyId": "1092915978",
+					"ts_to": date_to,
+					"ts_from": date_from_monthly
 			}
-			clean_meteo = edinet_clean_meteo_data_etl.delay(params)
-		except Exception as e:
-			print(e)
-			exit()
-	if clean_hourly is not None and clean_monthly is not None and clean_meteo is not None:
-		break
-	sleep(1)
+		clean_monthly = edinet_clean_daily_data_etl.delay(params)
+		return clean_monthly.wait()
+	except Exception as e:
+		print(e)
+		raise e
+
+def clean_meteo():
+	try:
+		from module_edinet.tasks import edinet_clean_meteo_data_etl
+		meteo_date = min(date_from_hourly,date_from_monthly)
+		params = {
+			"result_companyId": "1092915978",
+			"ts_to": date_to,
+			"ts_from": meteo_date
+		}
+		clean_meteo = edinet_clean_meteo_data_etl.delay(params)
+		return clean_meteo.wait()
+	except Exception as e:
+		print(e)
+		raise e
+
+def monthly_baseline():
+	try:
+		from module_edinet.tasks import edinet_baseline_monthly_module
+		params = {
+					"result_companyId": "1092915978",
+					"ts_to": date_to
+			 }
+		baseline_month = edinet_baseline_monthly_module.delay(params)
+		return baseline_month.wait()
+	except Exception as e:
+		print(e)
+		raise e
+
+def hourly_baseline():
+	try:
+		from module_edinet.tasks import edinet_baseline_hourly_module
+		params = {
+					"result_companyId": "1092915978",
+					"ts_to": date_to
+			 }
+		baseline_hour = edinet_baseline_hourly_module.delay(params)
+		return baseline_hour.wait()
+	except Exception as e:
+		print(e)
+		raise e
+
+def comparisons():
+	try:
+		from module_edinet.tasks import edinet_comparison_module
+		params = {
+				'result_companyId': 1092915978,
+				'ts_to': date_to,
+		}
+		comparison = edinet_comparison_module.delay(params)
+		return comparison.wait()
+	except Exception as e:
+		print(e)
+		raise e
 
 
-#ANALYTICS
-baseline_month, baseline_hour = None, None
-while True:
-	if clean_meteo.ready() and clean_hourly.ready() and clean_monthly.ready() and baseline_month is None: 
-		try:
-			from module_edinet.tasks import edinet_baseline_monthly_module
-			params = {
-                		"result_companyId": "1092915978",
-                		"ts_to": date_to
-       			 }
-			baseline_month = edinet_baseline_monthly_module.delay(params)
-		except Exception as e:
-			print(e)
-			exit()
-	if clean_hourly.ready() and clean_meteo.ready() and baseline_hour is None:
-		try:
-			from module_edinet.tasks import edinet_baseline_hourly_module
-			params = {
-                		"result_companyId": "1092915978",
-                		"ts_to": date_to
-       			 }
-			baseline_hour = edinet_baseline_hourly_module.delay(params)
-		except Exception as e:
-			print(e)
-			exit()
-	# if clean_hourly.ready() and clean_monthly.ready() and clean_meteo.ready() and comparison is None:
-	# 	try:
-	# 		from module_edinet.tasks import edinet_comparison_module
-	# 		params = {
-    # 				'result_companyId': 1092915978,
-    # 				'ts_to': date_to,
-    # 				'criteria': ['entityId', 'postalCode', 'useType', 'entityId + postalCode', 'entityId + postalCode + useType', 'entityId + useType']
- 	# 		}
-	# 		comparison = edinet_comparison_module.delay(params)
-	# 	except Exception as e:
-	# 		print(e)
-	# 		exit()
+# try:
+# 	from module_edinet.tasks import edinet_gam_baseline_training
+# 	params = {
+# 				"result_companyId": "1092915978",
+# 				"ts_to": date_to
+# 		 }
+# 	baseline_hour = edinet_gam_baseline_training.delay(params)
+# except Exception as e:
+# 	print(e)
+# 	exit()
+#
 
-	# if baseline_month is not None and baseline_hour is not None and comparison is not None:
-	if baseline_month is not None and baseline_hour is not None:
-		break
-	sleep(1)
-
-try:
-	from module_edinet.tasks import edinet_gam_baseline_training
-	params = {
-				"result_companyId": "1092915978",
-				"ts_to": date_to
-		 }
-	baseline_hour = edinet_gam_baseline_training.delay(params)
-except Exception as e:
-	print(e)
-	exit()
+if __name__ == "__main__":
+	module = sys.argv[1]
+	globals()[module]()
