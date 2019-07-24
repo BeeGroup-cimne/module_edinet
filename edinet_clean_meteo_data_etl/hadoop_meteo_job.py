@@ -9,7 +9,7 @@ import glob
 from json import load
 import pandas as pd
 import numpy as np
-from pymongo import MongoClient
+from pymongo import MongoClient, InsertOne, DeleteMany
 import bee_data_cleaning as dc
 
 
@@ -97,17 +97,19 @@ class MRJob_clean_meteo_data(MRJob):
         df = df.set_index('ts')
         df = df.sort_index()
         df['ts'] = df.index
-        # save meteo information in raw_data
-        # self.mongo['meteo_raw_data'].update({"stationId": key}, { "$set" : {
-        #     "stationId": key, "companyId": self.companyId,
-        #     "raw_data":df[columns].to_dict('records')
-        #     }
-        # }, upsert=True)
 
-        self.mongo['meteo_raw_data'].update(
-            {"stationId": key},
-            {"$unset": {"errors": 1}},
-            upsert=True)
+        raw_data = df[self.columns].to_dict('records')
+        for r in raw_data:
+            r.update({"stationId": key})
+
+        ops = [InsertOne(x) for x in raw_data]
+        result = self.mongo['meteo_raw_data'].bulk_write(
+            [
+                DeleteMany(
+                    {"stationId": key}),
+            ] + ops
+        )
+
         # check if duplicated meteo data
         duplicated_index = df.index.duplicated(keep='last')
         duplicated_values = df[duplicated_index].index.values.tolist()
@@ -129,17 +131,28 @@ class MRJob_clean_meteo_data(MRJob):
         znorm_outliers = list(df[znorm_bool].index)
         missing_values = list(df[df.temperature.isnull()].index)
 
-        self.mongo['meteo_raw_data'].update({"stationId": key},
-                                        {"$set":
-                                           {
-                                            "clean_data_meteo": df.to_dict('records'),
-                                            "negative_values": negative_outliers,
-                                            "znorm_outliers_hourly": znorm_outliers,
-                                            "max_outliers_hourly": max_outliers,
-                                            "gaps": missing_values,
-                                            "duplicated_values": duplicated_values
-                                           }
-                                        }, upsert=True)
+        clean_data = df[self.columns]('records')
+        for r in clean_data:
+            r.update({"stationId": key})
+
+        ops = [InsertOne(x) for x in clean_data]
+        result = self.mongo['meteo_clean_data'].bulk_write(
+            [
+                DeleteMany(
+                    {"stationId": key}),
+            ] + ops
+        )
+
+        self.mongo['meteo_data_quality'].update(
+            {"stationId": key},
+            {"$set":
+                {
+                    "overlapings": duplicated_values,
+                    "gaps": missing_values,
+                    "negative_values": negative_outliers,
+                    "znorm_outliers": znorm_outliers,
+                    "max_outliers": max_outliers}
+            }, upsert=True)
 
         all = [x[0] for x in self.config['output']['fields']]
         for row in df.iterrows():
