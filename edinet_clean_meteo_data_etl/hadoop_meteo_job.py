@@ -94,7 +94,7 @@ class MRJob_clean_meteo_data(MRJob):
         df = pd.DataFrame.from_records(values)
         # group it by source and energyType
         columns = [x[0] for x in self.config['output']['fields']]
-
+        columns.remove("stationId")
         df = df.set_index('ts')
         df = df.sort_index()
         df['ts'] = df.index
