@@ -93,12 +93,13 @@ class MRJob_clean_meteo_data(MRJob):
         #create dataframe with the values:
         df = pd.DataFrame.from_records(values)
         # group it by source and energyType
+        columns = [x[0] for x in self.config['output']['fields']]
 
         df = df.set_index('ts')
         df = df.sort_index()
         df['ts'] = df.index
 
-        raw_data = df[self.columns].to_dict('records')
+        raw_data = df[columns].to_dict('records')
         for r in raw_data:
             r.update({"stationId": key})
 
@@ -131,7 +132,7 @@ class MRJob_clean_meteo_data(MRJob):
         znorm_outliers = list(df[znorm_bool].index)
         missing_values = list(df[df.temperature.isnull()].index)
 
-        clean_data = df[self.columns]('records')
+        clean_data = df[columns]('records')
         for r in clean_data:
             r.update({"stationId": key})
 
