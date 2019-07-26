@@ -132,7 +132,7 @@ class MRJob_clean_meteo_data(MRJob):
         znorm_outliers = list(df[znorm_bool].index)
         missing_values = list(df[df.temperature.isnull()].index)
 
-        clean_data = df[columns]('records')
+        clean_data = df[columns].to_dict('records')
         for r in clean_data:
             r.update({"stationId": key})
 
