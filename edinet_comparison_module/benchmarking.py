@@ -66,7 +66,7 @@ class MRJob_benchmarking(MRJob):
                 "criteria_values": criteria_values,
                 "energyType":energy_type,
                 "month": month,
-                "num_buildings": len(df)
+                "num_buildings": len(df),
                 **comparation_results
             },
             upsert=True)
