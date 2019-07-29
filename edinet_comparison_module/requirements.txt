@@ -4,7 +4,7 @@ botocore==1.12.184
 cachetools==3.1.1
 certifi==2019.6.16
 chardet==3.0.4
-datetime-functions==0.0.2
+datetime-functions==0.0.3
 docutils==0.14
 future==0.17.1
 google-api-core==1.13.0
