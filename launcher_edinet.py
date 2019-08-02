@@ -1,7 +1,7 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import sys
-import os
+sys.path.insert(0,'.')
 # parameters
 date_to = datetime.now()
 date_from_hourly = date_to - relativedelta(years=2)
