@@ -5,7 +5,7 @@ import os
 # parameters
 date_to = datetime.now()
 date_from_hourly = date_to - relativedelta(years=2)
-date_from_monthly = date_to - relativedelta(years=4)
+date_from_monthly = date_to - relativedelta(years=2)
 
 
 # tasks definitions
