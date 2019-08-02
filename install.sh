@@ -9,5 +9,5 @@ do
   . install.sh
   cd ..
 
- echo "from ${base%?}.${m%?}.launcher import $task_name" >> tasks.py
+ echo "from $base.${m%?}.launcher import $task_name" >> tasks.py
 done
