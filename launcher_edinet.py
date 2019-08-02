@@ -109,7 +109,6 @@ def monthly_baseline():
 
 def hourly_baseline():
 	try:
-		print(os.getcwd())
 		from module_edinet.tasks import edinet_baseline_hourly_module
 		params = {
 			"result_companyId": "1092915978",
@@ -147,6 +146,5 @@ def comparisons():
 #
 
 if __name__ == "__main__":
-	os.chdir("/opt/BeeDataBackend")
 	module = sys.argv[1]
 	globals()[module]()
