@@ -30,9 +30,9 @@ class MRJob_benchmarking(MRJob):
         for criteria in criterias:
             field = criteria.split("+")
             criteria_key = "+".join([ret[input_fields[f]] for f in field])
-            criteria_etype = self.energyTypeDict[ret[input_fields['energyType']]] if ret[input_fields['energyType']] in self.energyTypeDict.keys() else self.energyTypeDict
+            criteria_etype = self.energyTypeDict[ret[input_fields['energyType']]] if ret[input_fields['energyType']] in self.energyTypeDict.keys() else ret[input_fields['energyType']]
             timestamp = datetime.fromtimestamp(float(ret[input_fields['ts']]))
-            criteria_ts = timestamp.strftime('%m')
+            criteria_ts = timestamp.strftime('%Y%m')
             key = "{}~{}~{}~{}".format(criteria_key, criteria_etype, criteria_ts, criteria)
             value = {"value": ret[input_fields['value']]}
             yield key, value
