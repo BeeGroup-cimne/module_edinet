@@ -112,7 +112,7 @@ class ETL_clean_daily(BeeModule2):
                         columns = measure_config['hbase_columns']
                         temp_table = create_hive_table_from_hbase_table(self.hive, table_name, table_name, keys, columns, self.task_UUID)
                         tables.append(temp_table)
-                        #self.context.add_clean_hive_tables(temp_table)
+                        self.context.add_clean_hive_tables(temp_table)
                         tables_energyType.append(energyType)
                         tables_source.append(companyId)
                         self.logger.debug("Created table: {}".format(temp_table))
@@ -123,12 +123,12 @@ class ETL_clean_daily(BeeModule2):
             fields = measure_config["hive_fields"]
 
             location = measure_config['measures'].format(UUID=self.task_UUID)
-            #self.context.add_clean_hdfs_file(location)
+            self.context.add_clean_hdfs_file(location)
             input_table = create_hive_module_input_table(self.hive, measure_config['temp_input_table'],
                                                      location, fields, self.task_UUID)
 
             #add input table to be deleted after execution
-            #self.context.add_clean_hive_tables(input_table)
+            self.context.add_clean_hive_tables(input_table)
             qbr = RawQueryBuilder(self.hive)
             select = ", ".join([f[0] for f in measure_config["sql_sentence_select"]])
             sentence = """
@@ -160,29 +160,29 @@ class ETL_clean_daily(BeeModule2):
             except:
                 continue
 
-        # #####################################################################################################################################################################################
-        # """ SETUP MAP REDUCE JOB """
-        # ######################################################################################################################################################################################
-        # # remove previous raw_data results
-        # output_fields = self.config['output']['fields']
-        # clean_tables = []
-        # for measure_config in self.config['measures']:
-        #     clean_file_name = measure_config['clean_output_file'].format(UUID=self.task_UUID)
-        #     self.context.add_clean_hdfs_file(clean_file_name)
-        #     clean_table_name = measure_config['clean_output_table']
-        #     self.logger.debug('Launching MR job to clean the daily data')
-        #     try:
-        #         # Launch MapReduce job
-        #         self.launcher_hadoop_job(measure_config['type'], measure_config['measures'].format(UUID=self.task_UUID), clean_file_name, result_companyId)
-        #     except Exception as e:
-        #         raise Exception('MRJob process has failed: {}'.format(e))
-        #
-        #     clean_table = create_hive_module_input_table(self.hive, clean_table_name,
-        #                                                  clean_file_name, output_fields, self.task_UUID)
-        #     self.context.add_clean_hive_tables(clean_table)
-        #     clean_tables.append([clean_table, measure_config['type']])
-        #     self.logger.debug("MRJob finished for {}".format(measure_config['type']))
-        #
+        #####################################################################################################################################################################################
+        """ SETUP MAP REDUCE JOB """
+        ######################################################################################################################################################################################
+        # remove previous raw_data results
+        output_fields = self.config['output']['fields']
+        clean_tables = []
+        for measure_config in self.config['measures']:
+            clean_file_name = measure_config['clean_output_file'].format(UUID=self.task_UUID)
+            #self.context.add_clean_hdfs_file(clean_file_name)
+            clean_table_name = measure_config['clean_output_table']
+            self.logger.debug('Launching MR job to clean the daily data')
+            try:
+                # Launch MapReduce job
+                self.launcher_hadoop_job(measure_config['type'], measure_config['measures'].format(UUID=self.task_UUID), clean_file_name, result_companyId)
+            except Exception as e:
+                raise Exception('MRJob process has failed: {}'.format(e))
+
+            clean_table = create_hive_module_input_table(self.hive, clean_table_name,
+                                                         clean_file_name, output_fields, self.task_UUID)
+            #self.context.add_clean_hive_tables(clean_table)
+            clean_tables.append([clean_table, measure_config['type']])
+            self.logger.debug("MRJob finished for {}".format(measure_config['type']))
+
         # ######################################################################################################################################################################################
         # """ Join the output in a hive table """
         # ######################################################################################################################################################################################
