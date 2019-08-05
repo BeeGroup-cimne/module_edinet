@@ -124,12 +124,12 @@ class MRJob_clean_meteo_data(MRJob):
         min_threshold_bool = dc.detect_min_threshold_outliers(df['temperature'], min_threshold)
         df['temperature'] = dc.clean_series(df['temperature'], min_threshold_bool)
 
-        znorm_bool = dc.detect_znorm_outliers(df['temperature'], 30, mode="global")
-        df['temperature'] = dc.clean_series(df['temperature'], znorm_bool)
+        #znorm_bool = dc.detect_znorm_outliers(df['temperature'], 30, mode="global")
+        #df['temperature'] = dc.clean_series(df['temperature'], znorm_bool)
 
         max_outliers = list(df[max_outlier_bool].index)
         negative_outliers = list(df[min_threshold_bool].index)
-        znorm_outliers = list(df[znorm_bool].index)
+        #znorm_outliers = list(df[znorm_bool].index)
         missing_values = list(df[df.temperature.isnull()].index)
 
         clean_data = df[columns].to_dict('records')
@@ -151,7 +151,7 @@ class MRJob_clean_meteo_data(MRJob):
                     "overlapings": duplicated_values,
                     "gaps": missing_values,
                     "negative_values": negative_outliers,
-                    "znorm_outliers": znorm_outliers,
+         #           "znorm_outliers": znorm_outliers,
                     "max_outliers": max_outliers}
             }, upsert=True)
 
