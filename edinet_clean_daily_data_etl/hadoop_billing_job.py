@@ -123,6 +123,8 @@ class MRJob_clean_billing_data(MRJob):
                 dfs = []
                 for row in df_etype_group.iterrows():
                     index = pd.date_range(row[1]['ts_ini'], row[1]['ts_end'])
+                    if not index:
+                        continue
                     df_temp = pd.DataFrame(
                         data={"index": index, "value": [(float(row[1]['value']) / float(len(index)))] * len(index)}, index=index)
                     dfs.append(df_temp)
