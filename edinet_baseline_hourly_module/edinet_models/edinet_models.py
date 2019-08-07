@@ -187,7 +187,11 @@ def baseline_calc_pyemis_old(df_new, tdf, energy_type, iters=16):
     # join dataframes (ALREADY ALIGNED AND CURATED)
     final = df_new.join(tdf)
     final = final.dropna()
-
+    if final.empty:
+        return {
+            "error": "the df is empty",
+            "temp": tdf.to_dict(orient='records')
+        }
     # final lists
     ts_list = []
     value_list = []
