@@ -131,6 +131,7 @@ class MRJob_align(MRJob):
                 {"baseline": baseline},
                 upsert=True
             )
+            return
         mongo.update(
             {'modellingUnitId': modelling_unit, 'companyId': int(self.company)},
             {"$set": baseline},
