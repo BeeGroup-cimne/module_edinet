@@ -190,8 +190,8 @@ def baseline_calc_pyemis_old(df_new, tdf, energy_type, iters=16):
     if final.empty:
         return {
             "error": "the df is empty",
-            "df_new": df_new.reset_index().to_dict(orient="records"),
-            "temp": tdf.reset_index().to_dict(orient="records")
+            #"df_new": df_new.reset_index().to_dict(orient="records"),
+            #"temp": tdf.reset_index().to_dict(orient="records")
         }
     # final lists
     ts_list = []

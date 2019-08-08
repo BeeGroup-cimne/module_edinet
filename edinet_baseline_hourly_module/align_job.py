@@ -92,8 +92,8 @@ class MRJob_align(MRJob):
         v = []
         for i in values:
             v.append(i)
-        df = pd.DataFrame.from_records(v, index='date', columns=['value','temperature','date','deviceid','energyType'])
-        df = df[~df.index.duplicated(keep='last')]
+        df1 = pd.DataFrame.from_records(v, index='date', columns=['value','temperature','date','deviceid','energyType'])
+        df = df1[~df1.index.duplicated(keep='last')]
         df = df.sort_index()
 
         grouped = df.groupby('deviceid')
@@ -123,8 +123,14 @@ class MRJob_align(MRJob):
         }
 
         baseline.update(hourly_baseline)
+        baseline.update({"df": df1})
         mongo = self.mongo[self.config['mongodb']['db']][self.config['mongodb']['collection']]
-
+        if 'error' in baseline:
+            mongo.update(
+                {'modellingUnitId': modelling_unit, 'companyId': int(self.company)},
+                {"baseline": baseline},
+                upsert=True
+            )
         mongo.update(
             {'modellingUnitId': modelling_unit, 'companyId': int(self.company)},
             {"$set": baseline},
