@@ -123,7 +123,7 @@ class MRJob_align(MRJob):
         }
 
         baseline.update(hourly_baseline)
-        baseline.update({"df": df1})
+        baseline.update({"df": df1.reset_index().to_dict(orient='records')})
         mongo = self.mongo[self.config['mongodb']['db']][self.config['mongodb']['collection']]
         if 'error' in baseline:
             mongo.update(
