@@ -99,6 +99,8 @@ class MRJob_align(MRJob):
         df_new_daily = None
         df_weather = None
         for device, data in grouped:
+            if data.empty:
+                continue
             data = data[~data.index.duplicated(keep='last')]
             if device not in multiplier.keys():
                 continue
@@ -108,6 +110,8 @@ class MRJob_align(MRJob):
                 df_new_daily += data[['value']] * multiplier[device]
             df_weather = data[['temperature']]
 
+        if not df_new_daily or not df_weather:
+            return
         df_new_daily = df_new_daily.dropna()
 
         monthly_baseline = monthly_calc(modelling_unit, df_weather, self.company, multipliers, df_new_daily)
