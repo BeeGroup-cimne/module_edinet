@@ -133,7 +133,7 @@ class BaselineModule(BeeModule2):
         # create a table with the devices values
 
         fields = [('deviceId', 'string'), ('ts', 'int'), ('value', 'float'),
-                  ('energyType', 'string'), ('temperature', 'string')]
+                  ('energyType', 'string'), ('source', 'string'), ('temperature', 'string')]
 
         location = self.config['paths']['measures']
 
