@@ -92,8 +92,7 @@ class MRJob_align(MRJob):
         df = pd.DataFrame.from_records(values, index='date', columns=['value','temperature','date','deviceid','energyType','source'])
         companies_preference = self.config['companies_preferences']
         companies_preference.reverse()
-        t = pd.CategoricalDtype(categories=companies_preference, ordered=True)
-        df['source'] = df.source.astype(t)
+        df['source'] = df.source.astype("category", categories=companies_preference, ordered=True)
         df = df.sort_values(['date', 'source'])
         #test only Inergy
         grouped = df.groupby('deviceid')
