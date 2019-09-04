@@ -145,8 +145,8 @@ class BaselineModule(BeeModule2):
         qbr = RawQueryBuilder(self.hive)
         sentence = """
             INSERT OVERWRITE TABLE {input_table}    
-            SELECT a.deviceId, a.ts, a.value, a.energyType, c.temp as temperature FROM
-                (SELECT ai.deviceid as deviceId, UNIX_TIMESTAMP(TO_DATE(FROM_UNIXTIME(ai.ts)), "yyyy-MM-dd") as ts, ai.value as value, ai.energyType as energyType 
+            SELECT a.deviceId, a.ts, a.value, a.energyType, a.source, c.temp as temperature FROM
+                (SELECT ai.deviceid as deviceId, UNIX_TIMESTAMP(TO_DATE(FROM_UNIXTIME(ai.ts)), "yyyy-MM-dd") as ts, ai.value as value, ai.energyType as energyType, ai.source as source 
                 FROM edinet_daily_consumption ai
                 WHERE
                     ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND

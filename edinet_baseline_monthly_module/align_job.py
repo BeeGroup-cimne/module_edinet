@@ -62,23 +62,23 @@ class MRJob_align(MRJob):
             d = {
                 'deviceid': ret[0],
                 'date': datetime.fromtimestamp(float(ret[1])),
-                'energyType': ret[3]
+                'energyType': ret[3],
+                'source': ret[4]
                 }
+
+            try:
+                d['value'] = float(ret[2])
+            except:
+                d['value'] = None
+            try:
+                d['temperature'] = float(ret[5])
+            except:
+                d['temperature'] = None
+
+            for modelling_unit in modelling_units:
+                yield modelling_unit, d
         except Exception as e:
             pass
-
-        try:
-            d['value'] = float(ret[2])
-        except:
-            d['value'] = None
-        try:
-            d['temperature'] = float(ret[4])
-        except:
-            d['temperature'] = None
-
-        for modelling_unit in modelling_units:
-            yield modelling_unit, d
-
     
     def reducer(self, key, values):
         # obtain the needed info from the key
@@ -89,10 +89,11 @@ class MRJob_align(MRJob):
             multiplier[i['deviceId']] = i['multiplier']
 
         # create dataframe from values list
-        df = pd.DataFrame.from_records(values, index='date', columns=['value','temperature','date','deviceid','energyType'])
+        df = pd.DataFrame.from_records(values, index='date', columns=['value','temperature','date','deviceid','energyType','source'])
 
         df = df.sort_index()
-
+        #test only Inergy
+        df = df[df.source=="3230658933"]
         grouped = df.groupby('deviceid')
         # has to multiply each modelling unit values by multiplier and add them all:
         df_new_daily = None
