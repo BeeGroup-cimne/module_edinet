@@ -110,7 +110,7 @@ class MRJob_align(MRJob):
                 df_new_daily += data[['value']] * multiplier[device]
             df_weather = data[['temperature']]
 
-        if df_new_daily.empty or df_new_daily is None or df_weather.empty or df_weather is None:
+        if df_new_daily is None or df_new_daily.empty or df_weather is None or df_weather.empty:
             return
         df_new_daily = df_new_daily.dropna()
 
