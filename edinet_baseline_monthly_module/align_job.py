@@ -90,10 +90,12 @@ class MRJob_align(MRJob):
 
         # create dataframe from values list
         df = pd.DataFrame.from_records(values, index='date', columns=['value','temperature','date','deviceid','energyType','source'])
-
-        df = df.sort_index()
+        companies_preference = self.config['companies_preferences']
+        companies_preference.reverse()
+        t = pd.CategoricalDtype(categories=companies_preference, ordered=True)
+        df['source'] = df.source.astype(t)
+        df = df.sort_values(['date', 'source'])
         #test only Inergy
-        df = df[df.source=="3230658933"]
         grouped = df.groupby('deviceid')
         # has to multiply each modelling unit values by multiplier and add them all:
         df_new_daily = None
