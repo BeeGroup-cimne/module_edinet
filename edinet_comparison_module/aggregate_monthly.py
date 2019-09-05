@@ -68,23 +68,29 @@ class MRJob_aggregate(MRJob):
             multiplier[i['deviceId']] = i['multiplier']
         columns = [x[0] for x in self.config['hive']['final_table_fields']]
         df = pd.DataFrame.from_records(values, index='ts', columns=columns)
+        companies_preference = self.config['companies_preferences']
+        companies_preference.reverse()
+        df['source'] = df.source.astype("category", categories=companies_preference, ordered=True)
+        df = df.sort_values(['ts', 'source'])
         energy_type = df.energyType.unique()[0]
         grouped = df.groupby('deviceId')
         df_new_daily = None
         for device, data in grouped:
-            if device not in multiplier.keys():
+            if data.empty:
                 continue
             data = data[~data.index.duplicated(keep='last')]
-            data = data.sort_index()
+            if device not in multiplier.keys():
+                continue
             if df_new_daily is None:
                 df_new_daily = data[['value']] * multiplier[device]
             else:
                 df_new_daily += data[['value']] * multiplier[device]
-
-        df_new_daily = df_new_daily.sort_index()
+        if df_new_daily is None or df_new_daily.empty:
+            return
+        df_new_daily = df_new_daily.dropna()
         df_value = df_new_daily[['value']].resample('M').mean()
         df_value['days'] = df_new_daily[['value']].resample('M').count()
-        df_value['value'] = df_value['value']/float(area)
+        df_value['value'] = df_value['value']/float(area) if area and area > 0 else None
         mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
         mongo[self.config['mongodb']['db']].authenticate(
             self.config['mongodb']['username'],

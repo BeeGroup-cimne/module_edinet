@@ -186,12 +186,11 @@ class ComparisonModule(BeeModule3):
         self.logger.debug('creating hive query')
         qbr = RawQueryBuilder(self.hive)
 
-        self.logger.debug("fda")
         total_select_joint = ", ".join(["{}.{}".format(x[2],x[0]) for x in self.config['hive']['final_table_fields']])
         sentence = """
             INSERT OVERWRITE TABLE {input_table}
             SELECT {total_select_joint} FROM
-                (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType FROM edinet_daily_consumption ai
+                (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType, ai.source as source FROM edinet_daily_consumption ai
                     WHERE
                         ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
                         ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss") AND
@@ -201,7 +200,6 @@ class ComparisonModule(BeeModule3):
         self.logger.debug(sentence)
         qbr.execute_query(sentence)
         self.hive.close()
-        self.logger.debug("AAAAAAAAAAAAAAAAAAAAAAAAA")
         gc.collect()
         ######################################################################################################################################################################################
         """ MAPREDUCE TO AGGREGATE MONTHLY DATA """
