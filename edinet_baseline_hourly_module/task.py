@@ -132,7 +132,7 @@ class BaselineModule(BeeModule2):
         # create a table with the devices values
 
         fields = [('deviceId', 'string'), ('ts', 'int'), ('value', 'float'),
-                  ('energyType', 'string'), ('temperature', 'string')]
+                  ('energyType', 'string'), ('source', 'string'), ('temperature', 'string')]
 
         location = self.config['paths']['measures']
 
@@ -144,8 +144,8 @@ class BaselineModule(BeeModule2):
         qbr = RawQueryBuilder(self.hive)
         sentence = """
             INSERT OVERWRITE TABLE {input_table}
-            SELECT a.deviceId, a.ts, a.value, a.energyType, c.temperature FROM
-                (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType FROM edinet_hourly_consumption ai
+            SELECT a.deviceId, a.ts, a.value, a.energyType, a.source, c.temperature FROM
+                (SELECT ai.deviceid as deviceId, ai.ts as ts, ai.value as value, ai.energyType as energyType, , ai.source as source, FROM edinet_hourly_consumption ai
                     WHERE
                         ai.ts >= UNIX_TIMESTAMP("{ts_from}","yyyy-MM-dd HH:mm:ss") AND
                         ai.ts <= UNIX_TIMESTAMP("{ts_to}","yyyy-MM-dd HH:mm:ss")) a

@@ -62,23 +62,22 @@ class MRJob_align(MRJob):
             d = {
                 'deviceid': ret[0],
                 'date': datetime.fromtimestamp(float(ret[1])),
-                'energyType': ret[3]
+                'energyType': ret[3],
+                'source': ret[4]
                 }
+            try:
+                d['value'] = float(ret[2])
+            except:
+                d['value'] = None
+            try:
+                d['temperature'] = float(ret[5])
+            except:
+                d['temperature'] = None
+
+            for modelling_unit in modelling_units:
+                yield modelling_unit, d
         except Exception as e:
             pass
-
-        try:
-            d['value'] = float(ret[2])
-        except:
-            d['value'] = None
-        try:
-            d['temperature'] = float(ret[4])
-        except:
-            d['temperature'] = None
-
-        for modelling_unit in modelling_units:
-            yield modelling_unit, d
-
     
     def reducer(self, key, values):
         # obtain the needed info from the key
@@ -92,9 +91,11 @@ class MRJob_align(MRJob):
         v = []
         for i in values:
             v.append(i)
-        df1 = pd.DataFrame.from_records(v, index='date', columns=['value','temperature','date','deviceid','energyType'])
-        df = df1[~df1.index.duplicated(keep='last')]
-        df = df.sort_index()
+        df = pd.DataFrame.from_records(v, index='date', columns=['value','temperature','date','deviceid','energyType','source'])
+        companies_preference = self.config['companies_preferences']
+        companies_preference.reverse()
+        df['source'] = df.source.astype("category", categories=companies_preference, ordered=True)
+        df = df.sort_values(['date', 'source'])
 
         grouped = df.groupby('deviceid')
         # has to multiply each device values by multiplier and add them all:
@@ -103,13 +104,17 @@ class MRJob_align(MRJob):
         for device, data in grouped:
             if device not in multiplier.keys():
                 continue
+            data = data[~data.index.duplicated(keep='last')]
             if df_new_hourly is None:
                 df_new_hourly = data[['value']] * multiplier[device]
             else:
                 df_new_hourly += data[['value']] * multiplier[device]
             df_weather = data[['temperature']]
 
+        if df_new_hourly is None or df_new_hourly.empty or df_weather is None or df_weather.empty:
+            return
 
+        df_new_hourly = df_new_hourly.dropna()
 
         energy_type = df['energyType'].unique()[0]
 
@@ -125,7 +130,6 @@ class MRJob_align(MRJob):
         baseline.update(hourly_baseline)
         mongo = self.mongo[self.config['mongodb']['db']][self.config['mongodb']['collection']]
         if 'error' in baseline:
-            baseline.update({"df": df1.iloc[0:100].reset_index().to_dict(orient='records')})
             mongo.update(
                 {'modellingUnitId': modelling_unit, 'companyId': int(self.company)},
                 {"baseline": baseline},
