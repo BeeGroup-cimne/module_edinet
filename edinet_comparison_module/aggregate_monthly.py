@@ -85,9 +85,10 @@ class MRJob_aggregate(MRJob):
                 df_new_daily = data[['value']] * multiplier[device]
             else:
                 df_new_daily += data[['value']] * multiplier[device]
+
+        df_new_daily = df_new_daily.dropna()
         if df_new_daily is None or df_new_daily.empty:
             return
-        df_new_daily = df_new_daily.dropna()
         df_value = df_new_daily[['value']].resample('M').mean()
         df_value['days'] = df_new_daily[['value']].resample('M').count()
         try:
