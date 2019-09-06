@@ -90,7 +90,10 @@ class MRJob_aggregate(MRJob):
         df_new_daily = df_new_daily.dropna()
         df_value = df_new_daily[['value']].resample('M').mean()
         df_value['days'] = df_new_daily[['value']].resample('M').count()
-        df_value['value'] = df_value['value']/float(area) if area and area > 0 else None
+        try:
+            df_value['value'] = df_value['value']/float(area)
+        except ZeroDivisionError:
+            df_value['value'] = None
         mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
         mongo[self.config['mongodb']['db']].authenticate(
             self.config['mongodb']['username'],
