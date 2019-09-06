@@ -94,7 +94,7 @@ class MRJob_aggregate(MRJob):
         try:
             df_value['value'] = df_value['value']/float(area)
         except ZeroDivisionError:
-            df_value['value'] = None
+            return
         mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
         mongo[self.config['mongodb']['db']].authenticate(
             self.config['mongodb']['username'],
