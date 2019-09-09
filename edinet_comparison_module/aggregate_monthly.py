@@ -92,7 +92,7 @@ class MRJob_aggregate(MRJob):
         df_value = df_new_daily[['value']].resample('M').mean()
         df_value['days'] = df_new_daily[['value']].resample('M').count()
         global_value = df_new_daily[-12:][['value']].mean().values[0]
-        global_month = df_new_daily[-1:].index.values[0]
+        global_month = df_new_daily[-1:].index.values[0].strftime('%Y%m')
         try:
             df_value['value'] = df_value['value']/float(area)
         except ZeroDivisionError:
