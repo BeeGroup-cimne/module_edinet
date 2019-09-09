@@ -91,6 +91,8 @@ class MRJob_aggregate(MRJob):
             return
         df_value = df_new_daily[['value']].resample('M').mean()
         df_value['days'] = df_new_daily[['value']].resample('M').count()
+        global_value = df_new_daily[-12:][['value']].mean().values[0]
+        global_month = df_new_daily[-1:].index.values[0]
         try:
             df_value['value'] = df_value['value']/float(area)
         except ZeroDivisionError:
@@ -106,6 +108,8 @@ class MRJob_aggregate(MRJob):
             "modellingUnitId": modelling_unit,
             "companyId": self.company,
             "df": df_value.reset_index().to_dict('records'),
+            "global_value": global_value,
+            "global_month": global_month,
         }, upsert=True)
         mongo.close()
 
