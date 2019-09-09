@@ -55,7 +55,8 @@ class MRJob_benchmarking(MRJob):
         global_df = pd.DataFrame.from_records(final_results)
         global_df = global_df.set_index("month")
         global_df = global_df.sort_index()
-        global_df['global_value'] = global_df.rolling(12, min_periods=1).mean()
+        for b in breaks:
+            global_df['anual_quantile_{}'.format(b)] = global_df['anual_{}'.format(b)].rolling(12, min_periods=1).mean()
 
         for i, row in global_df.iterrows():
             mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])

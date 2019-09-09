@@ -108,8 +108,8 @@ class MRJob_aggregate(MRJob):
             "modellingUnitId": modelling_unit,
             "companyId": self.company,
             "df": df_value.reset_index().to_dict('records'),
-            "global_value": global_value,
-            "global_month": global_month,
+            "anual_value": global_value,
+            "anual_month": global_month,
         }, upsert=True)
         mongo.close()
 
