@@ -54,15 +54,13 @@ class MRJob_benchmarking(MRJob):
         #fem la comparació global, amb la mitjana dels ultims 12 mesos per cada edifici
         if not final_results:
             return
-
-
         global_df = pd.DataFrame()
         for building, data in df.groupby("building"):
             data = data.set_index("timestamp")
             data = data.sort_index()
             data['anual'] = data.value.rolling(12, min_periods=1).mean()
-            data=data.reset_index()
-            global_df.append(data)
+            data = data.reset_index()
+            global_df = global_df.append(data)
         if global_df.empty:
             return
         for b in breaks:
