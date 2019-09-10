@@ -34,7 +34,7 @@ class MRJob_benchmarking(MRJob):
             timestamp = datetime.fromtimestamp(float(ret[input_fields['ts']]))
             timestamp_m = timestamp.strftime('%Y%m')
             key = "{}~{}~{}".format(criteria_key, criteria_etype, criteria)
-            value = {"value": ret[input_fields['value']], "timestamp": timestamp_m}
+            value = {"value": ret[input_fields['value']], "timestamp": timestamp_m, "building": ret[input_fields['modellingunit']]}
             yield key, value
 
     def reducer(self, key, values):
@@ -51,16 +51,28 @@ class MRJob_benchmarking(MRJob):
             comparation_results.update({"month": month, "num_buildings": len(data)})
             final_results.append(comparation_results)
 
-        #fem la comparació global, amb la mitjana dels ultims 12 mesos per cada mes
+        #fem la comparació global, amb la mitjana dels ultims 12 mesos per cada edifici
         if not final_results:
             return
-        global_df = pd.DataFrame.from_records(final_results)
-        global_df = global_df.set_index("month")
-        global_df = global_df.sort_index()
-        for b in breaks:
-            global_df['anual_quantile_{}'.format(b)] = global_df['quantile_{}'.format(b)].rolling(12, min_periods=1).mean()
 
-        for i, row in global_df.iterrows():
+
+        global_df = pd.DataFrame()
+        for building, data in df.groupby("building"):
+            data = data.set_index("timestamp")
+            data = data.sort_index()
+            data['anual'] = data.value.rolling(12, min_periods=1).mean()
+            data=data.reset_index()
+            global_df.append(data)
+
+        for b in breaks:
+            global_df['anual_quantile_{}'.format(b)] = np.nanpercentile(global_df.anual, b)
+
+        final_df = pd.DataFrame.from_records(final_results)
+        final_df = final_df.set_index("month")
+        global_df = global_df.set_index("timestamp")
+        final_df = final_df.join(global_df)
+
+        for i, row in final_df.iterrows():
             mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
             mongo[self.config['mongodb']['db']].authenticate(
                 self.config['mongodb']['username'],
