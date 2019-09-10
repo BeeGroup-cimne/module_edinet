@@ -95,6 +95,7 @@ class MRJob_aggregate(MRJob):
         global_month = df_new_daily.iloc[-1].name.strftime('%Y%m')
         try:
             df_value['value'] = df_value['value']/float(area)
+            global_value = global_value/float(area)
         except ZeroDivisionError:
             return
         mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
