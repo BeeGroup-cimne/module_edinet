@@ -63,7 +63,8 @@ class MRJob_benchmarking(MRJob):
             data['anual'] = data.value.rolling(12, min_periods=1).mean()
             data=data.reset_index()
             global_df.append(data)
-
+        if global_df.empty:
+            return
         for b in breaks:
             global_df['anual_quantile_{}'.format(b)] = np.nanpercentile(global_df.anual, b)
 
