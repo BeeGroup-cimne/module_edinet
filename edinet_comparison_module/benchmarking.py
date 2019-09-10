@@ -52,6 +52,8 @@ class MRJob_benchmarking(MRJob):
             final_results.append(comparation_results)
 
         #fem la comparació global, amb la mitjana dels ultims 12 mesos per cada mes
+        if not final_results:
+            return
         global_df = pd.DataFrame.from_records(final_results)
         global_df = global_df.set_index("month")
         global_df = global_df.sort_index()
