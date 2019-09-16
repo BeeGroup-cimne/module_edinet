@@ -133,6 +133,20 @@ def comparisons():
 	except Exception as e:
 		print(e)
 		raise e
+
+
+def train_gam():
+	try:
+		from module_edinet.tasks import edinet_gam_baseline_training
+		params = {
+			'result_companyId': 1092915978,
+			'ts_to': date_to,
+		}
+		comparison = edinet_gam_baseline_training.delay(params)
+		return comparison.wait()
+	except Exception as e:
+		print(e)
+		raise e
 # try:
 # 	from module_edinet.tasks import edinet_gam_baseline_training
 # 	params = {
