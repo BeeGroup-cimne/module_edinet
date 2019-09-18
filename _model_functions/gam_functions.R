@@ -1143,11 +1143,13 @@ GaussianMixtureModel_clustering<-function(df,value_column="value",k=NULL, tz="UT
     # Clustering model
 
     mclust_results <- tryCatch( Mclust(apply(df_spread_norm,1:2,as.numeric),G = k, modelNames = c("VVI","VII")),
-                              warning = function(e){
+                              error = function(e){
                                 Mclust(apply(df_spread_norm,1:2,as.numeric),G = k, modelNames = c("EEI","EII"))
                               }
     )
-
+    if(is.null(mclust_results)){
+        return(NULL)
+    }
     mclust_results[['training_init']] = df_spread_norm_pre
     mclust_results[['value_column']] = value_column
     clustering <- list("cluster"=predict(mclust_results)$classification,"centers"=t(mclust_results$parameters$mean),"k"=mclust_results$G)

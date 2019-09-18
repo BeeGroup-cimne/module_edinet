@@ -167,7 +167,6 @@ class MRJob_align(MRJob):
 
         try:
             result = predict_gaussian_mixture_model(model, df_new_hourly, "clustering_values", timezone)
-
             structural = result[['time', 's', 'dayhour']]
             structural = structural.set_index('time')
             structural = structural.sort_index()
