@@ -159,7 +159,7 @@ class MRJob_align(MRJob):
                 {
                     "modellingUnitId": modelling_unit,
                     "model": "error in clustering",
-                    "df": df_new_hourly.reset_index().to_dict('records'),
+                    #"df": df_new_hourly.reset_index().to_dict('records'),
                     "multipliers": multipliers,
                     "lat": lat,
                     "lon": lon,
@@ -172,28 +172,6 @@ class MRJob_align(MRJob):
             mongo.close()
             return
 
-        mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
-        mongo[self.config['mongodb']['db']].authenticate(
-            self.config['mongodb']['username'],
-            self.config['mongodb']['password']
-        )
-
-        mongo[self.config['mongodb']['db']][self.config['module_config']['mongo_error']].replace_one(
-            {"modellingUnitId": modelling_unit},
-            {
-                "modellingUnitId": modelling_unit,
-                "model": "corrected",
-                "df": df_new_hourly.reset_index().to_dict('records'),
-                "multipliers": multipliers,
-                "lat": lat,
-                "lon": lon,
-                "timezone": timezone,
-                "error": 1
-            },
-            upsert=True
-        )
-        mongo.close()
-        return
         try:
             df_new_hourly = df_new_hourly.merge(structural, how='right', right_index=True, left_index=True)
             df_new_hourly = df_new_hourly[df_new_hourly.dayhour.isna() == False]
