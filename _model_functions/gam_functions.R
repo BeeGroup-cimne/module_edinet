@@ -1134,7 +1134,7 @@ GaussianMixtureModel_clustering<-function(df,value_column="value",k=NULL, tz="UT
     complete_cases <- complete.cases(df_spread_norm)
     df_spread_norm<- df_spread_norm[complete_cases,]
     if (nrow(df_spread_norm)==0){
-         return(NULL)
+         stop("There is not enough data to perform the analytics")
     }
     # Initialize the objects
     # Test a clustering from 2 to 10 groups, if k is NULL (default).
@@ -1143,12 +1143,12 @@ GaussianMixtureModel_clustering<-function(df,value_column="value",k=NULL, tz="UT
     # Clustering model
 
     mclust_results <- tryCatch( Mclust(apply(df_spread_norm,1:2,as.numeric),G = k, modelNames = c("VVI","VII")),
-                              error = function(e){
-                                Mclust(apply(df_spread_norm,1:2,as.numeric),G = k, modelNames = c("EEI","EII"))
-                              }
-    )
+                                  error = function(e){
+                                    Mclust(apply(df_spread_norm,1:2,as.numeric),G = k, modelNames = c("EEI","EII"))
+                                  }
+
     if(is.null(mclust_results)){
-        return(NULL)
+        stop("The clustering has errors")
     }
     mclust_results[['training_init']] = df_spread_norm_pre
     mclust_results[['value_column']] = value_column
