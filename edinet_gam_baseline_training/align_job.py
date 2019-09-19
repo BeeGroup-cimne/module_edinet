@@ -234,7 +234,7 @@ class MRJob_align(MRJob):
             for i, j in enumerate(range(max_cell, len(pickle_model) + max_cell, max_cell)):
                 ini = i * max_cell
                 end = min(j, len(pickle_model))
-                row['model:part{}'.format(i+1)] = ini#pickle_model[ini:end]
+                row['model:part{}'.format(i+1)] = str(ini)#pickle_model[ini:end]
                 num_parts +=1
             row['model:total'] = str(num_parts)
 
