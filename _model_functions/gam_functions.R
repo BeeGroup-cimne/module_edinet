@@ -1146,6 +1146,7 @@ GaussianMixtureModel_clustering<-function(df,value_column="value",k=NULL, tz="UT
                                   error = function(e){
                                     Mclust(apply(df_spread_norm,1:2,as.numeric),G = k, modelNames = c("EEI","EII"))
                                   }
+    )
 
     if(is.null(mclust_results)){
         stop("The clustering has errors")
