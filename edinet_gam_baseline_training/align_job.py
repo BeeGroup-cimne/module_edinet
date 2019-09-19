@@ -194,99 +194,99 @@ class MRJob_align(MRJob):
         )
         mongo.close()
         return
-        # try:
-        #     df_new_hourly = df_new_hourly.merge(structural, how='right', right_index=True, left_index=True)
-        #     df_new_hourly = df_new_hourly[df_new_hourly.dayhour.isna() == False]
-        #     df_new_hourly = df_new_hourly[df_new_hourly.s.isna() == False]
-        #     count = df_new_hourly.groupby(
-        #         [df_new_hourly.index.year, df_new_hourly.index.month, df_new_hourly.index.day])
-        #     complete_days = [datetime(*day).date() for day, x in count if x.count()['value'] >= whole_day_index]
-        #     df_new_hourly = df_new_hourly[df_new_hourly.index.tz_localize(None).floor('D').isin(complete_days)]
-        #     self.increment_counter("M", "O", amount=1)
-        #
-        #     df = prepare_dataframe(model, df_new_hourly, "value", 6, lat, lon, timezone=timezone)
-        # except Exception as e:
-        #     if "time" in df_new_hourly:
-        #         df_new_hourly.drop("time", axis=1)
-        #     mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
-        #     mongo[self.config['mongodb']['db']].authenticate(
-        #         self.config['mongodb']['username'],
-        #         self.config['mongodb']['password']
-        #     )
-        #
-        #     mongo[self.config['mongodb']['db']][self.config['module_config']['mongo_error']].replace_one({
-        #         "modellingUnitId": modelling_unit}, {
-        #         "modellingUnitId": modelling_unit,
-        #         "model": "Error preparing dataframe",
-        #         "df": df_new_hourly.reset_index().to_dict('records'),
-        #         "multipliers": multipliers,
-        #         "lat": lat,
-        #         "lon": lon,
-        #         "timezone": timezone,
-        #         "exception": str(e),
-        #         "error": 2
-        #         }, upsert=True)
-        #     mongo.close()
-        #     return
-        #
-        # try:
-        #     e_type = "electricity" if energy_type == "electricityConsumption" else "gas"
-        #     df = df.set_index('time')
-        #     count = df.groupby([df.index.year, df.index.month, df.index.day])
-        #     complete_days = [datetime(*day).date() for day, x in count if x.count()['value'] >= whole_day_index]
-        #     df = df[df.index.tz_localize(None).floor('D').isin(complete_days)]
-        #     self.increment_counter("M", "O", amount=1)
-        #     model_linear = train_linear(model=model, type=e_type, dataframe=df, value_column="value", n_max=6, m_max=0, by_s=False)
-        #     #save model to hbase
-        #     self.increment_counter("M", "O", amount=1)
-        #     model_linear = clean_linear(model_linear)
-        #     pickle_model = pickle.dumps(model_linear)
-        #     pickle_model = zlib.compress(pickle_model, 9)
-        #     table_name = self.config['module_config']['model_table']
-        #     hbase = happybase.Connection(self.config['hbase']['host'], self.config['hbase']['port'])
-        #     hbase.open()
-        #     try:
-        #         hbase.create_table(table_name, {"model": dict()})
-        #     except:
-        #         pass
-        #     hbase_table = hbase.table(table_name)
-        #     max_cell = self.config['module_config']['max_cell']
-        #     row={}
-        #     num_parts=1
-        #     for i, j in enumerate(range(max_cell, len(pickle_model) + max_cell, max_cell)):
-        #         ini = i * max_cell
-        #         end = min(j, len(pickle_model))
-        #         row['model:part{}'.format(i+1)] = pickle_model[ini:end]
-        #         num_parts +=1
-        #     row['model:total'] = str(num_parts)
-        #
-        #     hbase_table.put(modelling_unit, row)
-        #     hbase.close()
-        #     self.increment_counter("M", "O", amount=1)
-        # except Exception as e:
-        #     if "time" in df:
-        #         df.drop("time", axis=1)
-        #
-        #     mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
-        #     mongo[self.config['mongodb']['db']].authenticate(
-        #         self.config['mongodb']['username'],
-        #         self.config['mongodb']['password']
-        #     )
-        #
-        #     mongo[self.config['mongodb']['db']][self.config['module_config']['mongo_error']].replace_one({
-        #         "modellingUnitId": modelling_unit}, {
-        #         "modellingUnitId": modelling_unit,
-        #         "model": "Error training model",
-        #         #"df": df_new_hourly.reset_index().to_dict('records'),
-        #         "multipliers": multipliers,
-        #         "lat": lat,
-        #         "lon": lon,
-        #         "timezone": timezone,
-        #         "exception": str(e),
-        #         "error": 3
-        #     }, upsert=True)
-        #     mongo.close()
-        #     return
+        try:
+            df_new_hourly = df_new_hourly.merge(structural, how='right', right_index=True, left_index=True)
+            df_new_hourly = df_new_hourly[df_new_hourly.dayhour.isna() == False]
+            df_new_hourly = df_new_hourly[df_new_hourly.s.isna() == False]
+            count = df_new_hourly.groupby(
+                [df_new_hourly.index.year, df_new_hourly.index.month, df_new_hourly.index.day])
+            complete_days = [datetime(*day).date() for day, x in count if x.count()['value'] >= whole_day_index]
+            df_new_hourly = df_new_hourly[df_new_hourly.index.tz_localize(None).floor('D').isin(complete_days)]
+            self.increment_counter("M", "O", amount=1)
+
+            df = prepare_dataframe(model, df_new_hourly, "value", 6, lat, lon, timezone=timezone)
+        except Exception as e:
+            if "time" in df_new_hourly:
+                df_new_hourly.drop("time", axis=1)
+            mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
+            mongo[self.config['mongodb']['db']].authenticate(
+                self.config['mongodb']['username'],
+                self.config['mongodb']['password']
+            )
+
+            mongo[self.config['mongodb']['db']][self.config['module_config']['mongo_error']].replace_one({
+                "modellingUnitId": modelling_unit}, {
+                "modellingUnitId": modelling_unit,
+                "model": "Error preparing dataframe",
+                "df": df_new_hourly.reset_index().to_dict('records'),
+                "multipliers": multipliers,
+                "lat": lat,
+                "lon": lon,
+                "timezone": timezone,
+                "exception": str(e),
+                "error": 2
+                }, upsert=True)
+            mongo.close()
+            return
+
+        try:
+            e_type = "electricity" if energy_type == "electricityConsumption" else "gas"
+            df = df.set_index('time')
+            count = df.groupby([df.index.year, df.index.month, df.index.day])
+            complete_days = [datetime(*day).date() for day, x in count if x.count()['value'] >= whole_day_index]
+            df = df[df.index.tz_localize(None).floor('D').isin(complete_days)]
+            self.increment_counter("M", "O", amount=1)
+            model_linear = train_linear(model=model, type=e_type, dataframe=df, value_column="value", n_max=6, m_max=0, by_s=False)
+            #save model to hbase
+            self.increment_counter("M", "O", amount=1)
+            model_linear = clean_linear(model_linear)
+            pickle_model = pickle.dumps(model_linear)
+            pickle_model = zlib.compress(pickle_model, 9)
+            table_name = self.config['module_config']['model_table']
+            hbase = happybase.Connection(self.config['hbase']['host'], self.config['hbase']['port'])
+            hbase.open()
+            try:
+                hbase.create_table(table_name, {"model": dict()})
+            except:
+                pass
+            hbase_table = hbase.table(table_name)
+            max_cell = self.config['module_config']['max_cell']
+            row={}
+            num_parts=1
+            for i, j in enumerate(range(max_cell, len(pickle_model) + max_cell, max_cell)):
+                ini = i * max_cell
+                end = min(j, len(pickle_model))
+                row['model:part{}'.format(i+1)] = pickle_model[ini:end]
+                num_parts +=1
+            row['model:total'] = str(num_parts)
+
+            hbase_table.put(modelling_unit, row)
+            hbase.close()
+            self.increment_counter("M", "O", amount=1)
+        except Exception as e:
+            if "time" in df:
+                df.drop("time", axis=1)
+
+            mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
+            mongo[self.config['mongodb']['db']].authenticate(
+                self.config['mongodb']['username'],
+                self.config['mongodb']['password']
+            )
+
+            mongo[self.config['mongodb']['db']][self.config['module_config']['mongo_error']].replace_one({
+                "modellingUnitId": modelling_unit}, {
+                "modellingUnitId": modelling_unit,
+                "model": "Error training model",
+                #"df": df_new_hourly.reset_index().to_dict('records'),
+                "multipliers": multipliers,
+                "lat": lat,
+                "lon": lon,
+                "timezone": timezone,
+                "exception": str(e),
+                "error": 3
+            }, upsert=True)
+            mongo.close()
+            return
 
 
 
