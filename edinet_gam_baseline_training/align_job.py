@@ -1,4 +1,5 @@
 import os
+from subprocess import call
 from tempfile import NamedTemporaryFile
 
 import happybase
@@ -220,26 +221,16 @@ class MRJob_align(MRJob):
             model_linear = clean_linear(model_linear)
             pickle_model = pickle.dumps(model_linear)
             pickle_model = zlib.compress(pickle_model, 9)
-            table_name = self.config['module_config']['model_table']
-            hbase = happybase.Connection(self.config['hbase']['host'], self.config['hbase']['port'])
-            hbase.open()
+            model_folder = self.config['module_config']['model_folder']
             try:
-                hbase.create_table(table_name, {"model": dict()})
+                call(["hadoop", "fs", "-mkdir", "-p", model_folder])
             except:
                 pass
-            hbase_table = hbase.table(table_name)
-            max_cell = self.config['module_config']['max_cell']
-            row={}
-            num_parts=1
-            for i, j in enumerate(range(max_cell, len(pickle_model) + max_cell, max_cell)):
-                ini = i * max_cell
-                end = min(j, len(pickle_model))
-                row['model:part{}'.format(i+1)] = pickle_model[ini:end]
-                num_parts +=1
-            row['model:total'] = str(num_parts)
-
-            hbase_table.put(modelling_unit, row)
-            hbase.close()
+            model_file = NamedTemporaryFile()
+            model_file.name = modelling_unit
+            with open(model_file.name, 'w') as f:
+                f.write(pickle_model)  # where `stuff` is, y'know... stuff to write (a string)
+            call(["hadoop", "fs", "-copyFromLocal", model_file.name, model_folder])
             self.increment_counter("M", "O", amount=1)
         except Exception as e:
             if "time" in df:
