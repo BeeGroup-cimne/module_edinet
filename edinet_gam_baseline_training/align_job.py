@@ -228,7 +228,7 @@ class MRJob_align(MRJob):
                 pass
             model_file = NamedTemporaryFile()
             model_file.name = modelling_unit
-            with open(model_file.name, 'w') as f:
+            with open(model_file.name, 'wb') as f:
                 f.write(pickle_model)  # where `stuff` is, y'know... stuff to write (a string)
             call(["hadoop", "fs", "-copyFromLocal", model_file.name, model_folder])
             self.increment_counter("M", "O", amount=1)
