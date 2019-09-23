@@ -124,24 +124,6 @@ class MRJob_align(MRJob):
         count = df_new_hourly.groupby([df_new_hourly.index.year, df_new_hourly.index.month, df_new_hourly.index.day])
         complete_days = [datetime(*day).date() for day, x in count if x.count()['value'] >= whole_day_index]
         df_new_hourly = df_new_hourly[df_new_hourly.index.tz_localize(None).floor('D').isin(complete_days)]
-        if self.config['save_data_debug']:
-            mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
-            mongo[self.config['mongodb']['db']].authenticate(
-                self.config['mongodb']['username'],
-                self.config['mongodb']['password']
-            )
-
-            mongo[self.config['mongodb']['db']][self.config['module_config']['gam_prediction_debug']].replace_one({
-                "modellingUnitId": modelling_unit}, {
-                "modellingUnitId": modelling_unit,
-                "model": "Error training model",
-                "df": df_new_hourly.reset_index().to_dict('records'),
-                "multipliers": multipliers,
-                "lat": lat,
-                "lon": lon,
-                "timezone": timezone,
-            }, upsert=True)
-            mongo.close()
 
         self.increment_counter("M", "O", amount=1)
 
