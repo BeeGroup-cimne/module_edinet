@@ -129,7 +129,8 @@ class MRJob_align(MRJob):
 
         model_folder = self.config['module_config']['model_folder']
         cat = Popen(["hadoop", "fs", "-cat", "{}/{}".format(model_folder,modelling_unit)], stdout=PIPE)
-        model_str = zlib.decompress(cat.stdout.read())
+        model_str = cat.stdout.read()
+        model_str = zlib.decompress(model_str)
         model = pickle.loads(model_str)
         self.increment_counter("M", "O", amount=1)
         sys.stderr.write("Model obtained from HBASE\n")
