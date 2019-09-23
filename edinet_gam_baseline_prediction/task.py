@@ -108,7 +108,7 @@ class ModelPrediction(BeeModule3):
         cursor = self.mongo[modelling_units_collection].find({})
         for item in cursor :
 
-            if len(item['devices']) > 0:  # to avoid empty list of devices
+            if len(item['devices']) > 0 and item['stationId'] != "Unknown":  # to avoid empty list of devices
                 for dev in item['devices']:
                     stations[dev['deviceId']] = item['stationId'] if 'stationId' in item else None
                     solar_station[dev['deviceId']] = item['solar_station'] if 'solar_station' in item else None
