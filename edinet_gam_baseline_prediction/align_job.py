@@ -1,5 +1,6 @@
 import os
 import sys
+from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 
 import happybase
@@ -144,20 +145,9 @@ class MRJob_align(MRJob):
 
         self.increment_counter("M", "O", amount=1)
 
-        table_name = self.config['module_config']['model_table']
-        hbase = happybase.Connection(self.config['hbase']['host'], self.config['hbase']['port'])
-        hbase.open()
-        hbase_table = hbase.table(table_name)
-        row = hbase_table.row(modelling_unit)
-        hbase.close()
-        sys.stderr.write("Model obtained from HBASE\n")
-        if not row:
-            return
-        num_parts = int(row[b'model:total'])
-        model_str=bytes()
-        for part in range(1,num_parts):
-            model_str += row[bytes('model:part{}'.format(part), encoding="utf-8")]
-        model_str = zlib.decompress(model_str)
+        model_folder = self.config['module_config']['model_folder']
+        cat = Popen(["hadoop", "fs", "-cat", "{}/{}".format(model_folder,modelling_unit)], stdout=PIPE)
+        model_str = zlib.decompress(cat.stdout.read())
         model = pickle.loads(model_str)
         self.increment_counter("M", "O", amount=1)
         sys.stderr.write("Model obtained from HBASE\n")
