@@ -138,7 +138,7 @@ class MRJob_align(MRJob):
             # All data for clustering.
             df_new_hourly = df_new_hourly.assign(
                 clustering_values=df_new_hourly.value.rolling(5, center=True, min_periods=1).mean())
-        except Excepion as e:
+        except Exception as e:
             mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
             mongo[self.config['mongodb']['db']].authenticate(
                 self.config['mongodb']['username'],
