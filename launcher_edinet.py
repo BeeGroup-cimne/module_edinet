@@ -147,6 +147,19 @@ def train_gam():
 	except Exception as e:
 		print(e)
 		raise e
+
+def predict_gam():
+	try:
+		from module_edinet.tasks import edinet_gam_baseline_prediction
+		params = {
+			'result_companyId': 1092915978,
+			'ts_to': date_to,
+		}
+		comparison = edinet_gam_baseline_prediction.delay(params)
+		return comparison.wait()
+	except Exception as e:
+		print(e)
+		raise e
 # try:
 # 	from module_edinet.tasks import edinet_gam_baseline_training
 # 	params = {
