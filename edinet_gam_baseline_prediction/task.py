@@ -73,7 +73,7 @@ class ModelPrediction(BeeModule3):
         try:
             result_companyId = params['result_companyId']
             ts_to = params['ts_to']
-            ts_from = params['ts_from'] if 'ts_from' in params else ts_to - timedelta(days=14)
+            ts_from = params['ts_from'] if 'ts_from' in params else date_n_month(ts_to, -12)
             energyTypeList = params['type'] if 'type' in params else []
             save_data_debug = True if 'debug' in params and params['debug'] else False
         except KeyError as e:
