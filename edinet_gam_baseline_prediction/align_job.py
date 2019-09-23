@@ -17,7 +17,7 @@ from json import load
 from datetime import datetime
 import ast
 import pickle
-from module_edinet.model_functions.gam_functions import set_r_environment, train_gaussian_mixture_model, prepare_dataframe, train_linear, clean_linear, predict_gaussian_mixture_model, predict_model
+from module_edinet._model_functions.gam_functions import set_r_environment, train_gaussian_mixture_model, prepare_dataframe, train_linear, clean_linear, predict_gaussian_mixture_model, predict_model
 import numpy as np
 import ast
 import zlib
