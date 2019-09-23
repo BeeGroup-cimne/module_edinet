@@ -127,17 +127,40 @@ class MRJob_align(MRJob):
 
         self.increment_counter("M", "O", amount=1)
 
-        model_folder = self.config['module_config']['model_folder']
-        cat = Popen(["hadoop", "fs", "-cat", "{}/{}".format(model_folder,modelling_unit)], stdout=PIPE)
-        model_str = cat.stdout.read()
-        model_str = zlib.decompress(model_str)
-        model = pickle.loads(model_str)
-        self.increment_counter("M", "O", amount=1)
-        sys.stderr.write("Model obtained from HBASE\n")
-        # All data for clustering.
-        df_new_hourly = df_new_hourly.assign(
-            clustering_values=df_new_hourly.value.rolling(5, center=True, min_periods=1).mean())
+        try:
+            model_folder = self.config['module_config']['model_folder']
+            cat = Popen(["hadoop", "fs", "-cat", "{}/{}".format(model_folder,modelling_unit)], stdout=PIPE)
+            model_str = cat.stdout.read()
+            model_str = zlib.decompress(model_str)
+            model = pickle.loads(model_str)
+            self.increment_counter("M", "O", amount=1)
+            sys.stderr.write("Model obtained from HDFS\n")
+            # All data for clustering.
+            df_new_hourly = df_new_hourly.assign(
+                clustering_values=df_new_hourly.value.rolling(5, center=True, min_periods=1).mean())
+        except Excepion as e:
+            mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
+            mongo[self.config['mongodb']['db']].authenticate(
+                self.config['mongodb']['username'],
+                self.config['mongodb']['password']
+            )
 
+            mongo[self.config['mongodb']['db']][self.config['module_config']['mongo_error']].replace_one(
+                {"modellingUnitId": modelling_unit},
+                {
+                    "modellingUnitId": modelling_unit,
+                    "model": "can't read model from file",
+                    "multipliers": multipliers,
+                    "lat": lat,
+                    "lon": lon,
+                    "timezone": timezone,
+                    "exception": str(e),
+                    "error": 1
+                },
+                upsert=True
+            )
+            mongo.close()
+            return
         try:
             result = predict_gaussian_mixture_model(model, df_new_hourly, "clustering_values", timezone)
             structural = result[['time', 's', 'dayhour']]
@@ -147,8 +170,6 @@ class MRJob_align(MRJob):
             self.increment_counter("M", "O", amount=1)
             sys.stderr.write("clustering prediction done")
         except Exception as e:
-            if "time" in df_new_hourly:
-                df_new_hourly.drop("time", axis=1)
             mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
             mongo[self.config['mongodb']['db']].authenticate(
                 self.config['mongodb']['username'],
@@ -160,7 +181,6 @@ class MRJob_align(MRJob):
                 {
                     "modellingUnitId": modelling_unit,
                     "model": "The clustering is empty",
-                    "df": df_new_hourly.reset_index().to_dict('records'),
                     "multipliers": multipliers,
                     "lat": lat,
                     "lon": lon,
@@ -186,8 +206,6 @@ class MRJob_align(MRJob):
             self.increment_counter("M", "O", amount=1)
             sys.stderr.write("dataframe prepared for prediction")
         except Exception as e:
-            if "time" in df_new_hourly:
-                df_new_hourly.drop("time", axis=1)
             mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
             mongo[self.config['mongodb']['db']].authenticate(
                 self.config['mongodb']['username'],
@@ -198,7 +216,6 @@ class MRJob_align(MRJob):
                 "modellingUnitId": modelling_unit}, {
                 "modellingUnitId": modelling_unit,
                 "model": "Error preparing dataframe",
-                "df": df_new_hourly.reset_index().to_dict('records'),
                 "multipliers": multipliers,
                 "lat": lat,
                 "lon": lon,
@@ -244,8 +261,6 @@ class MRJob_align(MRJob):
             self.increment_counter("M", "O", amount=1)
 
         except Exception as e:
-            if "time" in df_new_hourly:
-                df_new_hourly.drop("time", axis=1)
             mongo = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
             mongo[self.config['mongodb']['db']].authenticate(
                 self.config['mongodb']['username'],
@@ -256,7 +271,6 @@ class MRJob_align(MRJob):
                 "modellingUnitId": modelling_unit}, {
                 "modellingUnitId": modelling_unit,
                 "model": "Error in prediction",
-                "df": df_new_hourly.reset_index().to_dict('records'),
                 "multipliers": multipliers,
                 "lat": lat,
                 "lon": lon,
