@@ -91,8 +91,8 @@ class MRJob_aggregate(MRJob):
             return
         df_value = df_new_daily[['value']].resample('M').mean()
         df_value['days'] = df_new_daily[['value']].resample('M').count()
-        global_value = df_new_daily.value[-12:].mean()
-        global_month = df_new_daily.iloc[-1].name.strftime('%Y%m')
+        global_value = df_value.value[-12:].mean()
+        global_month = df_value.iloc[-1].name.strftime('%Y%m')
         try:
             df_value['value'] = df_value['value']/float(area)
             global_value = global_value/float(area)
