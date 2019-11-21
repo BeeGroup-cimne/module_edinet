@@ -41,7 +41,7 @@ class ETL_clean_hourly(BeeModule2):
                 mr_job = MRJob_clean_metering_data(
                     args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name, '-c', 'module_edinet/edinet_clean_hourly_data_etl/mrjob.conf',
                         '--output-dir', 'hdfs://' + output,
-                        '--jobconf', 'mapred.job.name=edinet_clean_hourly_data_etl', '--jobconf', 'mapred.reduce.tasks=15', '--jobconf', 'mapred.map.tasks=32'])
+                        '--jobconf', 'mapred.job.name=edinet_clean_hourly_data_etl'])
         else:
             raise Exception("The job with data type {} can not be treated".format(data_type))
         with mr_job.make_runner() as runner:
