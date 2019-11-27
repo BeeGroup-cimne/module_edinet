@@ -1,7 +1,7 @@
 #! /bin/bash
 if [ ! -f "module_variables.sh" ]; then
     echo "module not configured"
-    exit 0
+    return
 fi
 . module_variables.sh
 
