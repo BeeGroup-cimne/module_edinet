@@ -2,7 +2,7 @@
 
 rm tasks.py
 c_pwd=`pwd`
-base=`basename $cpwd`
+base=`basename $c_pwd`
 for m in `ls -d */ |grep ^[^_]`
 do
   cd $m
