@@ -194,7 +194,7 @@ class ETL_mh_hadoop(BeeModule2):
 
 
 if __name__ == "__main__":
-    commandDictionary = json.loads(sys.argv[1], object_hook=json_util.object_hook)
+    commandDictionary = json.loads(sys.argv[1], object_hook=BeeModule2.date_hook)
     job = ETL_mh_hadoop()
     job.run(commandDictionary)
 

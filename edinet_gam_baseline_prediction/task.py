@@ -216,7 +216,7 @@ class ModelPrediction(BeeModule3):
         self.logger.info('Module EDINET_baseline execution finished...')
 
 if __name__ == "__main__":
-    commandDictionary = json.loads(sys.argv[1], object_hook=json_util.object_hook)
+    commandDictionary = json.loads(sys.argv[1], object_hook=BeeModule3.date_hook)
     job = ModelPrediction()
     job.run(commandDictionary)
 

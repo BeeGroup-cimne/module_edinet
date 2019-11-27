@@ -15,6 +15,16 @@ import logging
 
 
 class BeeModule3(object):
+
+    @staticmethod
+    def date_hook(json_dict):
+        for key, value in json_dict.items():
+            try:
+                json_dict[key] = datetime.strptime(value, '%Y-%m-%d %H:%M:%S.%f')
+            except:
+                pass
+        return json_dict
+
     def __init__(self, module_name, **kwargs):
         self.task_UUID = str(uuid.uuid4()).replace("-","")
         self.module_name = module_name
