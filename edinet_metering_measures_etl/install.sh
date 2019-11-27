@@ -1,4 +1,8 @@
 #! /bin/bash
+if [ ! -f "module_variables.sh" ]; then
+    echo "module not configured"
+    exit 0
+fi
 . module_variables.sh
 
 function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
@@ -17,3 +21,4 @@ sed "s/{{python_path}}/$py_pa/; s/{{environment}}/$en_var/; s/{{pwd}}/$pw_t/; s/
 $virtualenv_path venv -p $python_v
 . venv/bin/activate
 pip install -r $pwd/requirements.txt --cert $cert
+deactivate
