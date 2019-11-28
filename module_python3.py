@@ -36,6 +36,7 @@ class BeeModule3(object):
         self.hdfs = None
         self.hbase = None
         self.config = self._set_config(module_name, kwargs)
+        self.num_reducers = self.config["config_execution"]["vcores"] * self.config["config_execution"]["performance"]
         self.report = Report(module=self)
         self.context = Context()
 

@@ -12,8 +12,12 @@ ve_p="${virtualenv_path//\//\\/}"
 ce_p="${cert//\//\\/}"
 pw_t="${pwd//\//\\/}"
 py_v="${python_v//\//\\/}"
-py_pa=${python_path[@]}
-py_pa="(${py_pa//\//\\/})"
+if [ ! -z $python_path ]; then
+    py_pa=`join_by /#: ${python_path[@]}/#`
+else
+    py_pa=
+fi
+py_pa="${py_pa//\//\\/}"
 en_var="`printf 'export %s;' ${to_export[@]}`"
 en_var="${en_var//\//\\/}"
 sed "s/{{python_path}}/$py_pa/; s/{{environment}}/$en_var/; s/{{pwd}}/$pw_t/; s/{{task_name}}/$task_name/; s/{{debug}}/$debug/; s/{{virtualenv_path}}/$ve_p/;s/{{python_v}}/$py_v/; s/{{cert}}/$ce_p/" ../.modules_config_files/mrjob.conf > mrjob.conf
