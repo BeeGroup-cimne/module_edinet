@@ -33,13 +33,11 @@ Project to execute the data analysis required for the Edinet and similar project
 		"etl_collection": "etl_task_reports",
 		"timeline_collection": "etl_automatic_launch_timeline"
 	},
-	"config_execution": {
-		"path": "tmp_path/config_execution",
-		"tertiary_periods" : "tertiary_periods",
-		"tou_periods": "tou_periods",
-		"last_contracts_ETL": "last_execution_contracts_ETL",
-		"streaming_jar": "/usr/lib/hadoop/hadoop-streaming.jar"
-	}
+	 "config_execution": {
+        "vcores": 15,
+        "performance": 0.95
+     }
+
 }
 ```
 3. Set the variables in `general_variables.sh`

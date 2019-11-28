@@ -45,7 +45,7 @@ class ComparisonModule(BeeModule3):
         mr_job = MRJob_aggregate(
             args=['-r', 'hadoop', 'hdfs://{}'.format(input), '--file', f.name,
                   '--output-dir', 'hdfs://{}'.format(output), '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
-                  '--jobconf', 'mapreduce.job.name=edinet_comparison'])
+                  '--jobconf', 'mapreduce.job.name=edinet_comparison', '--jobconf', 'mapred.reduce.tasks={}'.format(self.num_reducers)])
         # mr_job = MRJob_align(args=['-r', 'hadoop', 'hdfs://'+input, '--file', f.name, '--output-dir', '/tmp/prova_dani', '--python-archive', path.dirname(lib.__file__)])  # debugger
         self.logger.debug('running mr job')
         with mr_job.make_runner() as runner:
@@ -87,7 +87,7 @@ class ComparisonModule(BeeModule3):
         mr_job = MRJob_benchmarking(
             args=['-r', 'hadoop', 'hdfs://{}'.format(input), '--file', f.name,
                   '-c', 'module_edinet/edinet_comparison_module/mrjob.conf',
-                  '--jobconf', 'mapreduce.job.name=edinet_comparison_benchmarking'])
+                  '--jobconf', 'mapreduce.job.name=edinet_comparison_benchmarking', '--jobconf', 'mapred.reduce.tasks={}'.format(self.num_reducers)])
         # mr_job = MRJob_align(args=['-r', 'hadoop', 'hdfs://'+input, '--file', f.name, '--output-dir', '/tmp/prova_dani', '--python-archive', path.dirname(lib.__file__)])  # debugger
         self.logger.debug('running mr job')
         with mr_job.make_runner() as runner:
