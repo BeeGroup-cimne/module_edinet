@@ -6,8 +6,11 @@ base=`basename $c_pwd`
 for m in `ls -d */ |grep ^[^_]`
 do
   cd $m
-  . install.sh
-  cd ..
-
- echo "from $base.${m%?}.launcher import $task_name" >> tasks.py
+  if [ -f "module_variables.sh" ]; then
+  	. install.sh
+  	cd ..
+ 	echo "from $base.${m%?}.launcher import $task_name" >> tasks.py
+  else
+	cd ..
+  fi
 done
