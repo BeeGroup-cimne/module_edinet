@@ -146,15 +146,15 @@ class MRJob_clean_billing_data(MRJob):
                     gi = list(global_df.index)[index-1]
                     gaps.append([gi,gf])
 
-                max_threshold = self.config['max_threshold'][etype] * 24 if 'etype' in self.config['max_threshold'] else self.config['max_threshold']['default'] * 24
-                max_outliers_bool = dc.detect_max_threshold_outliers(global_df['value'], max_threshold)
-                global_df['value'] = dc.clean_series(global_df['value'], max_outliers_bool)
+                #max_threshold = self.config['max_threshold'][etype] * 24 if 'etype' in self.config['max_threshold'] else self.config['max_threshold']['default'] * 24
+                #max_outliers_bool = dc.detect_max_threshold_outliers(global_df['value'], max_threshold)
+                #global_df['value'] = dc.clean_series(global_df['value'], max_outliers_bool)
                 negative_values_bool = dc.detect_min_threshold_outliers(global_df['value'], 0)
                 global_df['value'] = dc.clean_series(global_df['value'], negative_values_bool)
                 znorm_bool = dc.detect_znorm_outliers(global_df['value'], 30, mode="global")
                 global_df['value'] = dc.clean_series(global_df['value'], znorm_bool)
 
-                max_outliers = list(global_df[max_outliers_bool].index)
+                #max_outliers = list(global_df[max_outliers_bool].index)
                 negative_outliers = list(global_df[negative_values_bool].index)
                 znorm_outliers = list(global_df[znorm_bool].index)
 
@@ -175,8 +175,8 @@ class MRJob_clean_billing_data(MRJob):
                                                     "overlapings" : overlappings,
                                                     "gaps": gaps,
                                                     "negative_values": negative_outliers,
-                                                    "znorm_outliers": znorm_outliers,
-                                                    "max_outliers": max_outliers}
+                                                    "znorm_outliers": znorm_outliers
+                                                    }
                                                 }, upsert=True)
 
                 for row in global_df.iterrows():

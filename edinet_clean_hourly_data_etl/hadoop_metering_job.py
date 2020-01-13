@@ -172,15 +172,15 @@ class MRJob_clean_metering_data(MRJob):
                     }, upsert=True)
                     continue
                 df_etype_group['ts'] = df_etype_group.index
-                max_threshold = self.config['max_threshold'][etype] if etype in self.config['max_threshold'] else self.config['max_threshold']['default']
-                max_outlier_bool = dc.detect_max_threshold_outliers(df_etype_group['value'], max_threshold)
-                df_etype_group['value'] = dc.clean_series(df_etype_group['value'], max_outlier_bool)
+                #max_threshold = self.config['max_threshold'][etype] if etype in self.config['max_threshold'] else self.config['max_threshold']['default']
+                #max_outlier_bool = dc.detect_max_threshold_outliers(df_etype_group['value'], max_threshold)
+                #df_etype_group['value'] = dc.clean_series(df_etype_group['value'], max_outlier_bool)
                 negative_values_bool = dc.detect_min_threshold_outliers(df_etype_group['value'], 0)
                 df_etype_group['value'] = dc.clean_series(df_etype_group['value'], negative_values_bool)
                 znorm_bool = dc.detect_znorm_outliers(df_etype_group['value'], 30, mode="global")
                 df_etype_group['value'] = dc.clean_series(df_etype_group['value'], znorm_bool)
 
-                max_outliers = list(df_etype_group[max_outlier_bool].index)
+                #max_outliers = list(df_etype_group[max_outlier_bool].index)
                 negative_outliers = list(df_etype_group[negative_values_bool].index)
                 znorm_outliers = list(df_etype_group[znorm_bool].index)
                 missing_values = list(df_etype_group[df_etype_group.value.isnull()].index)
@@ -205,8 +205,8 @@ class MRJob_clean_metering_data(MRJob):
                             "frequency": freq.resolution,
                             "gaps": missing_values,
                             "negative_values": negative_outliers,
-                            "znorm_outliers": znorm_outliers,
-                            "max_outliers": max_outliers}
+                            "znorm_outliers": znorm_outliers
+                        }
                     }, upsert=True)
 
                 # self.mongo['raw_data'].update({"device": key, "source": source, "energy_type": etype, "data_type": "metering"},
