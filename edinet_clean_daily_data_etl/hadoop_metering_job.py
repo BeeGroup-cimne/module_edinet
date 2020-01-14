@@ -171,12 +171,12 @@ class MRJob_clean_metering_data(MRJob):
                 #df_etype_group['value'] = dc.clean_series(df_etype_group['value'], max_outlier_bool)
                 negative_values_bool = dc.detect_min_threshold_outliers(df_etype_group['value'], 0)
                 df_etype_group['value'] = dc.clean_series(df_etype_group['value'], negative_values_bool)
-                znorm_bool = dc.detect_znorm_outliers(df_etype_group['value'], 30, mode="global")
-                df_etype_group['value'] = dc.clean_series(df_etype_group['value'], znorm_bool)
+                #znorm_bool = dc.detect_znorm_outliers(df_etype_group['value'], 30, mode="global")
+                #df_etype_group['value'] = dc.clean_series(df_etype_group['value'], znorm_bool)
 
                 #max_outliers = list(df_etype_group[max_outlier_bool].index)
                 negative_outliers = list(df_etype_group[negative_values_bool].index)
-                znorm_outliers = list(df_etype_group[znorm_bool].index)
+                #znorm_outliers = list(df_etype_group[znorm_bool].index)
                 missing_values = list(df_etype_group[df_etype_group.value.isnull()].index)
 
                 clean_data = df_etype_group[['ts','value']].to_dict('records')
@@ -198,8 +198,7 @@ class MRJob_clean_metering_data(MRJob):
                             "duplicated_values": duplicated_values,
                             "frequency": freq.resolution,
                             "gaps": missing_values,
-                            "negative_values": negative_outliers,
-                            "znorm_outliers": znorm_outliers
+                            "negative_values": negative_outliers
                         }
                     }, upsert=True)
 

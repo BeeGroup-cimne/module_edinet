@@ -151,12 +151,12 @@ class MRJob_clean_billing_data(MRJob):
                 #global_df['value'] = dc.clean_series(global_df['value'], max_outliers_bool)
                 negative_values_bool = dc.detect_min_threshold_outliers(global_df['value'], 0)
                 global_df['value'] = dc.clean_series(global_df['value'], negative_values_bool)
-                znorm_bool = dc.detect_znorm_outliers(global_df['value'], 30, mode="global")
-                global_df['value'] = dc.clean_series(global_df['value'], znorm_bool)
+                #znorm_bool = dc.detect_znorm_outliers(global_df['value'], 30, mode="global")
+                #global_df['value'] = dc.clean_series(global_df['value'], znorm_bool)
 
                 #max_outliers = list(global_df[max_outliers_bool].index)
                 negative_outliers = list(global_df[negative_values_bool].index)
-                znorm_outliers = list(global_df[znorm_bool].index)
+                #znorm_outliers = list(global_df[znorm_bool].index)
 
                 clean_data = global_df.to_dict('records')
                 for r in clean_data:
@@ -174,8 +174,7 @@ class MRJob_clean_billing_data(MRJob):
                                                    {
                                                     "overlapings" : overlappings,
                                                     "gaps": gaps,
-                                                    "negative_values": negative_outliers,
-                                                    "znorm_outliers": znorm_outliers
+                                                    "negative_values": negative_outliers
                                                     }
                                                 }, upsert=True)
 
