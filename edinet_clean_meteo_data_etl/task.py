@@ -77,11 +77,13 @@ class ETL_clean_meteo(BeeModule2):
         for measure_config in self.config['measures']:
             # Create temp tables with hbase data, add them to context_clean to be deleted after execution
             table_name = measure_config["hbase_table"]
+            hbase_table_name = "{}{}{}".format(self.config['hbase']['db'], self.config['hbase']['db_separator'],
+                                               table_name)
             self.logger.info('creating {} tables'.format(table_name))
             try:
                 keys = measure_config['hbase_keys']
                 columns = measure_config['hbase_columns']
-                table = create_hive_table_from_hbase_table(self.hive, table_name, table_name, keys, columns, self.task_UUID)
+                table = create_hive_table_from_hbase_table(self.hive, table_name, hbase_table_name, keys, columns, self.task_UUID)
                 self.context.add_clean_hive_tables(table)
                 self.logger.debug("Created table: {}".format(table))
             except Exception as e:

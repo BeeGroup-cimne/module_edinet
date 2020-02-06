@@ -101,9 +101,11 @@ class ETL_clean_hourly(BeeModule2):
                         table_name = "{}_{}_{}".format(type_table_name, energyType, companyId)
                         if table_name not in tables_list:
                             continue
+                        hbase_table_name = "{}{}{}".format(self.config['hbase']['db'],
+                                                           self.config['hbase']['db_separator'], table_name)
                         keys = measure_config['hbase_keys']
                         columns = measure_config['hbase_columns']
-                        temp_table = create_hive_table_from_hbase_table(self.hive, table_name, table_name, keys, columns, self.task_UUID)
+                        temp_table = create_hive_table_from_hbase_table(self.hive, table_name, hbase_table_name, keys, columns, self.task_UUID)
                         tables.append(temp_table)
                         self.context.add_clean_hive_tables(temp_table)
                         tables_energyType.append(energyType)
