@@ -98,8 +98,10 @@ class BeeModule3(object):
 
     def _set_hive(self):
         hive = hive_connection.connect(host=self.config['hive']['host'],
-                             port=int(self.config['hive']['port']),
-                             username=self.config['hive']['username'])
+                                       port=int(self.config['hive']['port']),
+                                       username=self.config['hive']['username'],
+                                       database=self.config['hive']['db']
+        )
         return hive.cursor()
 
     def _set_hdfs(self):
@@ -108,7 +110,10 @@ class BeeModule3(object):
 
     def _set_hbase(self):
         hbase = happybase.Connection(self.config['hbase']['host'],
-                                     int(self.config['hbase']['port']))
+                                     int(self.config['hbase']['port']),
+                                     table_prefix=self.config['hbase']['db'],
+                                     table_prefix_separator=self.config['hbase']["db_separator"]
+                                     )
         hbase.open()
         return hbase
 
