@@ -13,7 +13,7 @@ host = '*********'
 db = '****'
 username = "*****"
 password = "******"
-
+# setting some tests
 host = '********'
 db = '*********'
 username = "********"
