@@ -3,6 +3,7 @@ from celery_backend import app
 import os
 import subprocess
 import json
+from bson import json_util
 
 task_exec_file = "{{task_exec_file}}"
 task_name = "{{task_name}}"
