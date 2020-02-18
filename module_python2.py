@@ -214,6 +214,7 @@ class Report(dict):
         self['started_at'] = datetime.now()
         self['status'] = Report.RUNNING
         self['params'] = params
+        self.logger.debug("params")
         self._save_to_mongo()
 
     def update(self, dict):
