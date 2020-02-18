@@ -158,6 +158,7 @@ class BeeModule2(object):
 
         self.hbase = self._set_hbase()
         self.logger.info('HBASE OK')
+        self.logger.info(params)
 
         self.report.start(params)
         self.logger.info('Starting')
@@ -214,7 +215,6 @@ class Report(dict):
         self['started_at'] = datetime.now()
         self['status'] = Report.RUNNING
         self['params'] = params
-        self.logger.debug("params")
         self._save_to_mongo()
 
     def update(self, dict):
