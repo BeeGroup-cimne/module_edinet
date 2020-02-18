@@ -17,4 +17,4 @@ def {{task_name}}(params):
     try:
         subprocess.check_output([venv, file_exec, json.dumps(params, default=json_util.default)])
     except subprocess.CalledProcessError as e:
-        raise Exception(e.output)
+        raise Exception("error")
