@@ -98,12 +98,14 @@ class BeeModule3(object):
         hive = hive_connection.connect(host=self.config['hive']['host'],
                                        port=int(self.config['hive']['port']),
                                        username=self.config['hive']['username'],
-                                       database=self.config['hive']['db']
+                                       database=self.config['hive']['db'],
+                                       auth="KERBEROS", kerberos_service_name="hive"
         )
         return hive.cursor()
 
     def _set_hdfs(self):
-        hdfs = snakeBiteClient(self.config['hdfs']['host'], int(self.config['hdfs']['port']))
+        hdfs = snakeBiteClient(self.config['hdfs']['host'], int(self.config['hdfs']['port']), use_sasl=True,
+                               hdfs_namenode_principal="nn")
         return hdfs
 
     def _set_hbase(self):

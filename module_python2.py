@@ -101,8 +101,14 @@ class BeeModule2(object):
         return hive.cursor()
 
     def _set_hdfs(self):
+        if self.config['hdfs']['authMechanism'] == "KERBEROS":
+            class error():
+                def __getattr__(self, item):
+                    raise Exception("KERBEROS WILL NO LONGER WORK WITH SNAKEBITE FOR PYTHON 2")
+
+            return error()
         hdfs = snakeBiteClient(self.config['hdfs']['host'], int(self.config['hdfs']['port']))
-        return hdfs
+
 
     def _set_hbase(self):
         hbase = happybase.Connection(self.config['hbase']['host'],
