@@ -96,7 +96,7 @@ class BeeModule2(object):
     def _set_hive(self):
         hive = pyhs2.connect(host=self.config['hive']['host'],
                              port=int(self.config['hive']['port']),
-                             authMechanism='PLAIN', user=self.config['hive']['username'], password="",
+                             authMechanism=self.config['hive']['authMechanism'], user=self.config['hive']['username'], password="",
                              database=self.config['hive']['db'])
         return hive.cursor()
 
