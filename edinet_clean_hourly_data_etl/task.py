@@ -1,4 +1,3 @@
-import cPickle
 import os
 from datetime import datetime
 from tempfile import NamedTemporaryFile
@@ -7,12 +6,12 @@ from bson import json_util, BSON
 import json
 
 from hive_functions.query_builder import RawQueryBuilder
-from module_edinet.module_python2 import BeeModule2
+from module_edinet.module_python3 import BeeModule3
 import sys
 from hive_functions import create_hive_module_input_table, create_hive_table_from_hbase_table
 from module_edinet.edinet_clean_hourly_data_etl.hadoop_metering_job import MRJob_clean_metering_data
 
-class ETL_clean_hourly(BeeModule2):
+class ETL_clean_hourly(BeeModule3):
     """
     ETL to clean hourly data, detect gaps, outliers and overlappings
 
