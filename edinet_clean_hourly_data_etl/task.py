@@ -126,9 +126,12 @@ class ETL_clean_hourly(BeeModule3):
             qbr = RawQueryBuilder(self.hive)
             select = ", ".join([f[0] for f in measure_config["sql_sentence_select"]])
             sentence = """
-                INSERT OVERWRITE TABLE {input_table}
+                INSERT OVERWRITE DIRECTORY '{location}' 
+                ROW FORMAT DELIMITED
+                FIELDS TERMINATED BY '\t'
+                STORED AS TEXTFILE
                 SELECT {select} FROM
-                ( """.format(select=select, input_table=input_table)
+                ( """.format(select=select, location=location)
             letter = ["a{}".format(i) for i in range(len(tables) + 1)]
             text = []
             for index, tab in enumerate(tables):
