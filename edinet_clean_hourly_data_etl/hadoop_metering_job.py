@@ -21,7 +21,7 @@ class TSVProtocol(object):
         return k_str, v_str
 
     def write(self, key, value):
-        return '%s' % value
+        return "{}".format(value)
 
 
 def calculate_frequency(dataset):

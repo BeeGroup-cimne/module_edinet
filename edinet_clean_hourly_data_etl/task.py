@@ -34,7 +34,7 @@ class ETL_clean_hourly(BeeModule3):
         f = NamedTemporaryFile(delete=False, suffix='.json')
         f.write(json.dumps(job_extra_config))
         f.close()
-        self.logger.debug('Created temporary config file to upload into hadoop and read from job: %s' % f.name)
+        self.logger.debug('Created temporary config file to upload into hadoop and read from job: {}'.format(f.name))
         # create hadoop job instance adding file location to be uploaded
         if data_type == "metering":
                 mr_job = MRJob_clean_metering_data(
