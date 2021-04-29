@@ -33,7 +33,7 @@ class ETL_clean_hourly(BeeModule3):
         job_extra_config = self.config.copy()
         job_extra_config.update({'companyId': result_companyId})
         f = NamedTemporaryFile(delete=False, suffix='.json')
-        f.write(json.dumps(job_extra_config))
+        f.write(bytes(json.dumps(job_extra_config), 'utf-8'))
         f.close()
         self.logger.debug('Created temporary config file to upload into hadoop and read from job: {}'.format(f.name))
         # create hadoop job instance adding file location to be uploaded
@@ -48,10 +48,10 @@ class ETL_clean_hourly(BeeModule3):
             try:
                 runner.run()
             except Exception as e:
-                f.unlink(f.name)
+                os.unlink(f.name)
                 raise Exception('Error running MRJob process using hadoop: {}'.format(e))
 
-        f.unlink(f.name)
+        os.unlink(f.name)
         self.logger.debug('Temporary config file uploaded has been deleted from FileSystem')
 
         report['finished_at'] = datetime.now()
