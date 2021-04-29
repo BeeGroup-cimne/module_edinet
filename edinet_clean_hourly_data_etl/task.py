@@ -22,6 +22,7 @@ class ETL_clean_hourly(BeeModule3):
     def launcher_hadoop_job(self, data_type, input, output, result_companyId,  map_tasks=8, red_tasks=8):
         """Runs the Hadoop job uploading task configuration"""
         # create report to save on completion or error
+        self.logger.debug('test')
         report = {
             'started_at': datetime.now(),
             'state': 'launched',
