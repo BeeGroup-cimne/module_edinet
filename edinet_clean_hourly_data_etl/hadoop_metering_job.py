@@ -33,8 +33,8 @@ def calculate_frequency(dataset):
 class MRJob_clean_metering_data(MRJob):
 
 
-    #INTERNAL_PROTOCOL = PickleProtocol
-    #OUTPUT_PROTOCOL = TSVProtocol
+    INTERNAL_PROTOCOL = PickleProtocol
+    OUTPUT_PROTOCOL = TSVProtocol
 
     def mapper_init(self):
         
@@ -78,8 +78,8 @@ class MRJob_clean_metering_data(MRJob):
             value['accumulated'] = float(ret[3])
         except:
             value['accumulated'] = np.NaN
-
-        yield key, value
+        if key[0] == "E":
+            yield key, value
 
     # def reducer(self, key, values):
     #     """
