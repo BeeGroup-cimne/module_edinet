@@ -94,7 +94,8 @@ class MRJob_clean_metering_data(MRJob):
         """
         #create dataframe with the values:
         #df = pd.DataFrame.from_records(values, columns=["ts", "value", "accumulated", "energytype", "source"])
-        yield "A", 10"# key, str(df.value.sum())
+        yield "A", 10
+        # key, str(df.value.sum())
         # # group it by source and energyType
         # source_group = df.groupby('source')
         #
