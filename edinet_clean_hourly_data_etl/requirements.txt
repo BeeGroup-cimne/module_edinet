@@ -30,3 +30,4 @@ sasl==0.2.1
 six==1.15.0
 snakebite-py3==3.0.5
 thrift==0.13.0
+thrift-sasl==0.4.2
