@@ -34,7 +34,7 @@ class MRJob_clean_metering_data(MRJob):
 
 
     INTERNAL_PROTOCOL = PickleProtocol
-    OUTPUT_PROTOCOL = TSVProtocol
+    #OUTPUT_PROTOCOL = TSVProtocol
 
     # def mapper_init(self):
     #
