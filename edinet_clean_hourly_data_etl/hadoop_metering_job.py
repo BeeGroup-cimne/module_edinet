@@ -78,8 +78,7 @@ class MRJob_clean_metering_data(MRJob):
             value['accumulated'] = float(ret[3])
         except:
             value['accumulated'] = np.NaN
-        if key[0] == "E":
-            yield key, value
+        yield "AAA", 12 #key, value
 
     # def reducer(self, key, values):
     #     """
