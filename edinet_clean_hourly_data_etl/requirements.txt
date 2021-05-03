@@ -9,11 +9,12 @@ happybase @ git+https://github.com/BeeGroup-cimne/happybase@ff3402584606bf95a37c
 hive-functions @ git+https://github.com/BeeGroup-cimne/hive_functions@d513340f140b4803e2cef1412db47b33f8f36226
 kerberos==1.3.1
 kiwisolver==1.3.1
-matplotlib==3.4.1
+matplotlib==3.3.4
 mrjob==0.7.4
-numpy==1.20.2
-pandas==1.2.4
+numpy==1.19.5
+pandas==1.1.5
 Pillow==8.2.0
+pkg-resources==0.0.0
 plotly==4.14.3
 ply==3.11
 protobuf==3.15.8
