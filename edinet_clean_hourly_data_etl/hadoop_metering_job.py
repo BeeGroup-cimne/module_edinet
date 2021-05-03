@@ -36,11 +36,11 @@ class MRJob_clean_metering_data(MRJob):
     INTERNAL_PROTOCOL = PickleProtocol
     OUTPUT_PROTOCOL = TSVProtocol
 
-    def mapper_init(self):
-        
-        # recover json configuration uploaded with script
-        fn = glob.glob('*.json')
-        self.config = load(open(fn[0]))
+    # def mapper_init(self):
+    #
+    #     # recover json configuration uploaded with script
+    #     fn = glob.glob('*.json')
+    #     self.config = load(open(fn[0]))
 
 
 
