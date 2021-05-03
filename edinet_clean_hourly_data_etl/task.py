@@ -107,7 +107,7 @@ class ETL_clean_hourly(BeeModule3):
                         columns = measure_config['hbase_columns']
                         temp_table = create_hive_table_from_hbase_table(self.hive, table_name, hbase_table_name, keys, columns, self.task_UUID)
                         tables.append(temp_table)
-                        self.context.add_clean_hive_tables(temp_table)
+                        #self.context.add_clean_hive_tables(temp_table)
                         tables_energyType.append(energyType)
                         tables_source.append(companyId)
                         self.logger.debug("Created table: {}".format(temp_table))
@@ -164,8 +164,8 @@ class ETL_clean_hourly(BeeModule3):
         clean_tables = []
         for measure_config in self.config['measures']:
             clean_file_name = measure_config['clean_output_file'].format(UUID=self.task_UUID)
-            self.context.add_clean_hdfs_file(clean_file_name)
-            clean_table_name = measure_config['clean_output_table']
+            #self.context.add_clean_hdfs_file(clean_file_name)
+            #clean_table_name = measure_config['clean_output_table']
             self.logger.debug('Launching MR job to clean the daily data')
             try:
                 # Launch MapReduce job
@@ -173,10 +173,10 @@ class ETL_clean_hourly(BeeModule3):
             except Exception as e:
                 raise Exception('MRJob process has failed: {}'.format(e))
 
-            clean_table = create_hive_module_input_table(self.hive, clean_table_name,
-                                                         clean_file_name, output_fields, self.task_UUID)
-            self.context.add_clean_hive_tables(clean_table)
-            clean_tables.append([clean_table, measure_config['type']])
+            #clean_table = create_hive_module_input_table(self.hive, clean_table_name,
+            #                                             clean_file_name, output_fields, self.task_UUID)
+            #self.context.add_clean_hive_tables(clean_table)
+            #clean_tables.append([clean_table, measure_config['type']])
             self.logger.debug("MRJob finished for {}".format(measure_config['type']))
 
         # ######################################################################################################################################################################################
