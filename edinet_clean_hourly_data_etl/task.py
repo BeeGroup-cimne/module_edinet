@@ -179,42 +179,42 @@ class ETL_clean_hourly(BeeModule3):
             clean_tables.append([clean_table, measure_config['type']])
             self.logger.debug("MRJob finished for {}".format(measure_config['type']))
 
-        ######################################################################################################################################################################################
-        """ Join the output in a hive table """
-        ######################################################################################################################################################################################
-
-        output_file_name = self.config['output']['output_file_name']
-        output_hive_name = self.config['output']['output_hive_table']
-        output_hive_table = create_hive_module_input_table(self.hive, output_hive_name,
-                                                           output_file_name, output_fields)
-        try:
-            for i in self.hdfs.delete([output_file_name], recurse=True):
-                try:
-                    i
-                except:
-                    pass
-        except:
-            pass
-        select = ", ".join([f[0] for f in self.config['output']["sql_sentence_select"]])
-        sentence = """
-                        INSERT OVERWRITE TABLE {output_table}
-                        SELECT {select} FROM
-                        ( """.format(select=select, output_table=output_hive_table)
-        letter = ["a{}".format(i) for i in range(len(clean_tables) + 1)]
-        text = []
-        for index, tab in enumerate(clean_tables):
-            var = letter[index]
-            select = ", ".join([f[1] for f in self.config['output']["sql_sentence_select"]]).format(var=var, data_type=tab[1])
-            text.append(""" SELECT {select} FROM {tab} {var}
-                              """.format(var=var, select=select, tab=tab[0]))
-        sentence += """UNION
-                    """.join(text)
-        sentence += """) unionResult """
-
-        self.logger.debug(sentence)
-        qbr = RawQueryBuilder(self.hive)
-        qbr.execute_query(sentence)
-
+        # ######################################################################################################################################################################################
+        # """ Join the output in a hive table """
+        # ######################################################################################################################################################################################
+        #
+        # output_file_name = self.config['output']['output_file_name']
+        # output_hive_name = self.config['output']['output_hive_table']
+        # output_hive_table = create_hive_module_input_table(self.hive, output_hive_name,
+        #                                                    output_file_name, output_fields)
+        # try:
+        #     for i in self.hdfs.delete([output_file_name], recurse=True):
+        #         try:
+        #             i
+        #         except:
+        #             pass
+        # except:
+        #     pass
+        # select = ", ".join([f[0] for f in self.config['output']["sql_sentence_select"]])
+        # sentence = """
+        #                 INSERT OVERWRITE TABLE {output_table}
+        #                 SELECT {select} FROM
+        #                 ( """.format(select=select, output_table=output_hive_table)
+        # letter = ["a{}".format(i) for i in range(len(clean_tables) + 1)]
+        # text = []
+        # for index, tab in enumerate(clean_tables):
+        #     var = letter[index]
+        #     select = ", ".join([f[1] for f in self.config['output']["sql_sentence_select"]]).format(var=var, data_type=tab[1])
+        #     text.append(""" SELECT {select} FROM {tab} {var}
+        #                       """.format(var=var, select=select, tab=tab[0]))
+        # sentence += """UNION
+        #             """.join(text)
+        # sentence += """) unionResult """
+        #
+        # self.logger.debug(sentence)
+        # qbr = RawQueryBuilder(self.hive)
+        # qbr.execute_query(sentence)
+        #
 
         self.logger.info('MHbase-HBase ETL clean billing data execution finished...')
 
