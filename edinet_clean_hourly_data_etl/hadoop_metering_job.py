@@ -36,25 +36,25 @@ class MRJob_clean_metering_data(MRJob):
     INTERNAL_PROTOCOL = PickleProtocol
     #OUTPUT_PROTOCOL = TSVProtocol
 
-    # def mapper_init(self):
-    #
-    #     # recover json configuration uploaded with script
-    #     fn = glob.glob('*.json')
-    #     self.config = load(open(fn[0]))
+    def mapper_init(self):
+
+        # recover json configuration uploaded with script
+        fn = glob.glob('*.json')
+        self.config = load(open(fn[0]))
 
 
 
-    # def reducer_init(self):
-    #     # recover json configuration uploaded with script
-    #     fn = glob.glob('*.json')
-    #     self.config = load(open(fn[0]))
-    #     self.companyId = self.config['companyId']
-    #     self.mongo_client = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
-    #     self.mongo_client[self.config['mongodb']['db']].authenticate(
-    #             self.config['mongodb']['username'],
-    #             self.config['mongodb']['password']
-    #             )
-    #     self.mongo = self.mongo_client[self.config['mongodb']['db']]
+    def reducer_init(self):
+        # recover json configuration uploaded with script
+        fn = glob.glob('*.json')
+        self.config = load(open(fn[0]))
+        self.companyId = self.config['companyId']
+        self.mongo_client = MongoClient(self.config['mongodb']['host'], self.config['mongodb']['port'])
+        self.mongo_client[self.config['mongodb']['db']].authenticate(
+                self.config['mongodb']['username'],
+                self.config['mongodb']['password']
+                )
+        self.mongo = self.mongo_client[self.config['mongodb']['db']]
 
     def mapper(self, _, doc):
         """
@@ -80,20 +80,20 @@ class MRJob_clean_metering_data(MRJob):
             value['accumulated'] = np.NaN
         yield key, value
 
-    # def reducer(self, key, values):
-    #     """
-    #     Cleans the metering data:
-    #         - gets "acumulated or instant" values
-    #         - removes negative and outliers
-    #         - detects gaps
-    #         - generates daily dataframe
-    #     :param key: the device
-    #     :param values: the information
-    #     :return:
-    #     """
-        #create dataframe with the values:
-        #df = pd.DataFrame.from_records(values, columns=["ts", "value", "accumulated", "energytype", "source"])
-        #yield "A", 10
+    def reducer(self, key, values):
+        """
+        Cleans the metering data:
+            - gets "acumulated or instant" values
+            - removes negative and outliers
+            - detects gaps
+            - generates daily dataframe
+        :param key: the device
+        :param values: the information
+        :return:
+        """
+        create dataframe with the values:
+        df = pd.DataFrame.from_records(values, columns=["ts", "value", "accumulated", "energytype", "source"])
+        yield key, df.value.sum()
         # key, str(df.value.sum())
         # # group it by source and energyType
         # source_group = df.groupby('source')
