@@ -91,7 +91,7 @@ class MRJob_clean_metering_data(MRJob):
         :param values: the information
         :return:
         """
-        create dataframe with the values:
+        #create dataframe with the values:
         df = pd.DataFrame.from_records(values, columns=["ts", "value", "accumulated", "energytype", "source"])
         yield key, df.value.sum()
         # key, str(df.value.sum())
