@@ -50,7 +50,7 @@ class ETL_clean_hourly(BeeModule3):
         if data_type == "metering":
                 mr_job = MRJob_clean_metering_data(
                     args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name,
-                          # '-c', 'module_edinet/edinet_clean_hourly_data_etl/mrjob.conf',
+                          '-c', 'module_edinet/edinet_clean_hourly_data_etl/mrjob.conf',
                           '--output-dir', 'hdfs://' + output,
                           '--jobconf', 'yarn.app.mapreduce.am.env={}'.format(
                             ",".join("{}={}".format(k, v) for k, v in mrparams.items())),
