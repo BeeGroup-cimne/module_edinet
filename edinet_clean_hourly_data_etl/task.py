@@ -146,11 +146,12 @@ class ETL_clean_hourly(BeeModule3):
                                                                                                  source=source)
                 where = measure_config["sql_where_select"].format(var=var, ts_from=ts_from, ts_to=ts_to)
 
-                text.append(""" SELECT {select} FROM {tab} {var}
-                                  WHERE
-                                      {where}
-                                  """.format(var=var, select=select, tab=tab,
-                                             where=where))
+                text.append(""" SELECT {select} FROM {tab} {var}""".format(var=var, select=select, tab=tab, where=where))
+                # text.append(""" SELECT {select} FROM {tab} {var}
+                #                   WHERE
+                #                       {where}
+                #                   """.format(var=var, select=select, tab=tab,
+                #                              where=where))
             sentence += """UNION
                         """.join(text)
             sentence += """) unionResult """
