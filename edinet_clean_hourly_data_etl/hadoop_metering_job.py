@@ -201,7 +201,7 @@ class MRJob_clean_metering_data(MRJob):
                     {"$set":
                         {
                             "duplicated_values": duplicated_values,
-                            "frequency": freq.resolution,
+                            "frequency": str(freq),
                             "gaps": missing_values,
                             "negative_values": negative_outliers,
                             "znorm_outliers": znorm_outliers
