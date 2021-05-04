@@ -21,7 +21,7 @@ class TSVProtocol(object):
         return k_str, v_str
 
     def write(self, key, value):
-        return "{}".format(value)
+        return bytes("{}".format(value), "utf-8")
 
 
 def calculate_frequency(dataset):
@@ -34,7 +34,7 @@ class MRJob_clean_metering_data(MRJob):
 
 
     INTERNAL_PROTOCOL = PickleProtocol
-    #OUTPUT_PROTOCOL = TSVProtocol
+    OUTPUT_PROTOCOL = TSVProtocol
 
     def mapper_init(self):
 
