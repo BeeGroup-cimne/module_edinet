@@ -38,12 +38,10 @@ class ETL_clean_hourly(BeeModule3):
         self.logger.debug('Created temporary config file to upload into hadoop and read from job: {}'.format(f.name))
         # create hadoop job instance adding file location to be uploaded
         if data_type == "metering":
-                os.environ['YARN_CONTAINER_RUNTIME_TYPE'] = 'docker'
-                os.environ['YARN_CONTAINER_RUNTIME_DOCKER_IMAGE'] = 'python3-clean'
                 mr_job = MRJob_clean_metering_data(
                     args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name, '-c', 'module_edinet/edinet_clean_hourly_data_etl/mrjob.conf',
                         '--output-dir', 'hdfs://' + output,
-                        '--jobconf', 'mapred.job.name=edinet_clean_hourly_data_etl'])#, '--jobconf', 'mapred.reduce.tasks={}'.format(self.num_reducers)])
+                        '--jobconf', 'mapreduce.job.name=edinet_clean_hourly_data_etl', '--jobconf', 'mapreduce.job.reduces={}'.format(self.num_reducers)])
         else:
             raise Exception("The job with data type {} can not be treated".format(data_type))
         with mr_job.make_runner() as runner:
@@ -237,8 +235,8 @@ from datetime import datetime
 params = {
     "result_companyId": "1092915978",
     "ts_to": datetime(2019,7,9),
-    "data_companyId": "3230658933",
-    "type": "electricityConsumption
+    "data_companyId": ["3230658933"],
+    "type": ["electricityConsumption"]
 }
 t = ETL_clean_hourly()
 t.run(params) 
