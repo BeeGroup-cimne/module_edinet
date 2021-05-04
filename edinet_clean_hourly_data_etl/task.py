@@ -46,7 +46,12 @@ class ETL_clean_hourly(BeeModule3):
 
 
         }
-
+        os.environ['YARN_CONTAINER_RUNTIME_TYPE'] = 'docker'
+        os.environ['YARN_CONTAINER_RUNTIME_DOCKER_IMAGE'] = 'local/python3-clean'
+        os.environ['YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS'] = mrparams['YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS']
+        os.environ['YARN_CONTAINER_RUNTIME_DOCKER_RUN_PRIVILEGED_CONTAINER'] = 'true'
+        os.environ['YARN_CONTAINER_RUNTIME_DOCKER_RUN_OVERRIDE_DISABLE'] = 'true'
+        os.environ['KRB5_CONFIG'] = '/etc/krb5.conf'
         if data_type == "metering":
                 mr_job = MRJob_clean_metering_data(
                     args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name,
