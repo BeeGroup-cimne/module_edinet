@@ -41,6 +41,7 @@ class ETL_clean_hourly(BeeModule3):
                 mr_job = MRJob_clean_metering_data(
                     args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name, '-c', 'module_edinet/edinet_clean_hourly_data_etl/mrjob.conf',
                         '--output-dir', 'hdfs://' + output,
+                        '--jobconf', 'yarn.app.mapreduce.am.env=YARN_CONTAINER_RUNTIME_TYPE=docker,YARN_CONTAINER_RUNTIME_DOCKER_IMAGE=python3-clean'
                         '--jobconf', 'mapreduce.job.name=edinet_clean_hourly_data_etl', '--jobconf', 'mapreduce.job.reduces={}'.format(self.num_reducers)])
         else:
             raise Exception("The job with data type {} can not be treated".format(data_type))
