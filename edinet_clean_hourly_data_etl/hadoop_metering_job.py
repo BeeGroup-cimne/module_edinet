@@ -131,7 +131,7 @@ class MRJob_clean_metering_data(MRJob):
                 # # check if metering is acumulated or instant:
                 self.increment_counter("Job", "Raw_Data", amount=1)
                 duplicated_index = df_etype_group.index.duplicated(keep='last')
-                duplicated_values = df_etype_group[duplicated_index].index.values.tolist()
+                duplicated_values = df_etype_group[duplicated_index].index.to_pydatetime().tolist()
                 df_etype_group = df_etype_group[~duplicated_index]
 
                 freq = calculate_frequency(df_etype_group)
