@@ -170,7 +170,7 @@ class MRJob_clean_metering_data(MRJob):
                         }
                     }, upsert=True)
                     continue
-                df_etype_group['ts'] = df_etype_group.index
+                df_etype_group['ts'] = df_etype_group.index.to_pydatetime()
                 #max_threshold = self.config['max_threshold'][etype] if etype in self.config['max_threshold'] else self.config['max_threshold']['default']
                 #max_outlier_bool = dc.detect_max_threshold_outliers(df_etype_group['value'], max_threshold)
                 #df_etype_group['value'] = dc.clean_series(df_etype_group['value'], max_outlier_bool)
@@ -180,9 +180,9 @@ class MRJob_clean_metering_data(MRJob):
                 df_etype_group['value'] = dc.clean_series(df_etype_group['value'], znorm_bool)
 
                 #max_outliers = list(df_etype_group[max_outlier_bool].index)
-                negative_outliers = list(df_etype_group[negative_values_bool].index)
-                znorm_outliers = list(df_etype_group[znorm_bool].index)
-                missing_values = list(df_etype_group[df_etype_group.value.isnull()].index)
+                negative_outliers = list(df_etype_group[negative_values_bool].index.to_pydatetime())
+                znorm_outliers = list(df_etype_group[znorm_bool].index.to_pydatetime())
+                missing_values = list(df_etype_group[df_etype_group.value.isnull()].index.to_pydatetime())
                 self.increment_counter("Job", "CleanData", amount=1)
                 clean_data = df_etype_group[['ts','value']].to_dict('records')
                 for r in clean_data:
