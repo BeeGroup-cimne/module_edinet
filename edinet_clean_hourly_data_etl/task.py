@@ -37,13 +37,26 @@ class ETL_clean_hourly(BeeModule3):
         f.close()
         self.logger.debug('Created temporary config file to upload into hadoop and read from job: {}'.format(f.name))
         # create hadoop job instance adding file location to be uploaded
+        mrparams = {
+            "YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS": "/usr/hdp/current:/usr/hdp/current:ro,/usr/jdk64:/usr/jdk64:ro,"
+                                                    "/etc/passwd:/etc/passwd:ro,/etc/group:/etc/group:ro,/etc:/etc:ro",
+            "YARN_CONTAINER_RUNTIME_TYPE": "docker",
+            "YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": "local/python3-clean"
+
+
+
+        }
+
         if data_type == "metering":
                 mr_job = MRJob_clean_metering_data(
-                    args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name, '-c', 'module_edinet/edinet_clean_hourly_data_etl/mrjob.conf',
-                        '--output-dir', 'hdfs://' + output,
-                        '--jobconf', 'yarn.app.mapreduce.am.env=YARN_CONTAINER_RUNTIME_TYPE=docker,YARN_CONTAINER_RUNTIME_DOCKER_IMAGE=local/python3-clean',
-                        '--jobconf', 'java.security.krb5.conf=/etc/krb5.conf',
-                        '--jobconf', 'mapreduce.job.name=edinet_clean_hourly_data_etl', '--jobconf', 'mapreduce.job.reduces={}'.format(self.num_reducers)])
+                    args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name,
+                          # '-c', 'module_edinet/edinet_clean_hourly_data_etl/mrjob.conf',
+                          '--output-dir', 'hdfs://' + output,
+                          '--jobconf', 'yarn.app.mapreduce.am.env={}'.format(
+                            ",".join("{}={}".format(k, v) for k, v in mrparams.items())),
+                          '--jobconf', 'java.security.krb5.conf=/etc/krb5.conf',
+                          '--jobconf', 'mapreduce.job.name=edinet_clean_hourly_data_etl',
+                          '--jobconf', 'mapreduce.job.reduces={}'.format(self.num_reducers)])
         else:
             raise Exception("The job with data type {} can not be treated".format(data_type))
         with mr_job.make_runner() as runner:
