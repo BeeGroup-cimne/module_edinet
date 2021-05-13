@@ -38,27 +38,18 @@ class ETL_clean_hourly(BeeModule3):
         self.logger.debug('Created temporary config file to upload into hadoop and read from job: {}'.format(f.name))
         # create hadoop job instance adding file location to be uploaded
         mrparams = {
-            "YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS": "/usr/hdp/current:/usr/hdp/current:ro,/usr/jdk64:/usr/jdk64:ro,"
-                                                    "/etc/passwd:/etc/passwd:ro,/etc/group:/etc/group:ro,/etc:/etc:ro",
+            "YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS": "/etc:/etc:ro",
             "YARN_CONTAINER_RUNTIME_TYPE": "docker",
             "YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": "local/python3-clean"
 
 
 
         }
-        os.environ['YARN_CONTAINER_RUNTIME_TYPE'] = 'docker'
-        os.environ['YARN_CONTAINER_RUNTIME_DOCKER_IMAGE'] = 'local/python3-clean'
-        os.environ['YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS'] = mrparams['YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS']
-        os.environ['YARN_CONTAINER_RUNTIME_DOCKER_RUN_PRIVILEGED_CONTAINER'] = 'true'
-        os.environ['YARN_CONTAINER_RUNTIME_DOCKER_RUN_OVERRIDE_DISABLE'] = 'true'
-        os.environ['KRB5_CONFIG'] = '/etc/krb5.conf'
         if data_type == "metering":
                 mr_job = MRJob_clean_metering_data(
                     args=['-r', 'hadoop', 'hdfs://' + input, '--file', f.name,
                           '-c', 'module_edinet/edinet_clean_hourly_data_etl/mrjob.conf',
                           '--output-dir', 'hdfs://' + output,
-                          '--jobconf', 'yarn.app.mapreduce.am.env={}'.format(
-                            ",".join("{}={}".format(k, v) for k, v in mrparams.items())),
                           '--jobconf', 'mapreduce.map.env={}'.format(
                             ",".join("{}={}".format(k, v) for k, v in mrparams.items())),
                           '--jobconf', 'mapreduce.reduce.env={}'.format(
