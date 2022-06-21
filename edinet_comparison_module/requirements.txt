@@ -21,7 +21,7 @@ hive-functions==0.0.14
 idna==2.8
 jmespath==0.9.4
 mrjob==0.6.9
-numpy==1.16.4
+numpy==1.22.0
 pandas==0.24.2
 ply==3.11
 protobuf==3.8.0
