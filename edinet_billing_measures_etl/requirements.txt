@@ -33,7 +33,7 @@ kiwisolver==1.0.1
 matplotlib==2.2.3
 mrjob==0.6.5
 nbformat==4.4.0
-numpy==1.15.1
+numpy==1.22.0
 pandas==0.23.4
 plotly==3.2.1
 ply==3.11
