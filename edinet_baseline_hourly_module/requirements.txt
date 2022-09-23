@@ -37,7 +37,7 @@ numpy==1.15.1
 pandas==0.23.4
 plotly==3.2.1
 ply==3.11
-protobuf==3.6.1
+protobuf==3.18.3
 pyasn1==0.4.4
 pyasn1-modules==0.2.2
 pyhs2==0.6.0
