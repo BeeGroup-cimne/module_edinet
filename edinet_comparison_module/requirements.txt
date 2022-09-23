@@ -24,7 +24,7 @@ mrjob==0.6.9
 numpy==1.16.4
 pandas==0.24.2
 ply==3.11
-protobuf==3.8.0
+protobuf==3.18.3
 pyasn1==0.4.5
 pyasn1-modules==0.2.5
 PyHive==0.6.1
