@@ -28,7 +28,7 @@ hive-functions==0.0.14
 idna==2.8
 importlib-resources==1.0.2
 jedi==0.13.3
-Jinja2==2.10.1
+Jinja2==2.11.3
 jmespath==0.9.4
 kiwisolver==1.1.0
 MarkupSafe==1.1.1
